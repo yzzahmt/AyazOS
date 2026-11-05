@@ -51,6 +51,19 @@ PanelWindow {
             color: Theme.text
             font { family: Theme.font; pixelSize: 40; weight: Font.Normal }
         }
+        Row {
+            visible: Sys.weatherTemp !== ""
+            spacing: 10
+            topPadding: 6
+            Icon { name: Sys.weatherIcon; size: 20; anchors.verticalCenter: parent.verticalCenter }
+            Text {
+                text: Sys.weatherTemp + "  ·  " + Sys.weatherDesc + (Sys.weatherPlace ? "  ·  " + Sys.weatherPlace : "")
+                color: Theme.text
+                opacity: 0.8
+                font { family: Theme.font; pixelSize: 15 }
+                anchors.verticalCenter: parent.verticalCenter
+            }
+        }
     }
 
     // Canlı oturumda (kurulum ortamı) "AyazOS'u Kur" kartı

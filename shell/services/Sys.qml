@@ -72,6 +72,32 @@ Singleton {
     readonly property string dateShort: Qt.locale("tr_TR").toString(now, "d MMM ddd")
     readonly property string dateLong: Qt.locale("tr_TR").toString(now, "d MMMM dddd").toLocaleUpperCase(Qt.locale("tr_TR"))
 
+    // --- Hava durumu (wttr.in, konum IP'den; 30 dakikada bir) ---
+    property string weatherTemp: ""
+    property string weatherDesc: ""
+    property string weatherPlace: ""
+    property string weatherIcon: "cloud"
+    Process {
+        id: weatherQuery
+        command: ["curl", "-s", "--max-time", "8", "https://tr.wttr.in/?format=%t|%C|%l|%x"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const p = text.trim().split("|");
+                if (p.length < 4 || text.indexOf("<") >= 0) return;
+                root.weatherTemp = p[0].replace("+", "");
+                root.weatherDesc = p[1];
+                root.weatherPlace = p[2].split(",")[0];
+                const sym = p[3];
+                root.weatherIcon = sym.indexOf("!") >= 0 ? "cloud-lightning"
+                    : sym.indexOf("*") >= 0 ? "cloud-snow"
+                    : (sym.indexOf("/") >= 0 || sym.indexOf(".") >= 0) ? "cloud-rain"
+                    : sym.indexOf("=") >= 0 ? "cloud-fog"
+                    : sym === "o" ? "sun" : sym === "m" ? "cloud-sun" : "cloud";
+            }
+        }
+    }
+    Timer { interval: 30 * 60 * 1000; running: true; repeat: true; triggeredOnStart: true; onTriggered: weatherQuery.running = true }
+
     // --- Güncellemeler (6 saatte bir kontrol) ---
     property int updates: 0
     Process {

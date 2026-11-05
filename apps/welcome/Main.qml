@@ -197,6 +197,13 @@ Window {
             if (m) step = parseInt(m[1]);
             const pk = /^--pick=(.*)$/.exec(appArgs[i]);
             if (pk) { const p = {}; pk[1].split(",").forEach(x => p[x] = true); picked = p; }
+            if (appArgs[i] === "--demo-progress") {
+                installStarted = true;
+                const ids = Object.keys(picked);
+                const s = {};
+                ids.forEach((id, n) => s[id] = n === 0 ? { st: "ok", pct: 100, msg: "Yüklendi" } : n === 1 ? { st: "run", pct: 45, msg: "İndiriliyor" } : n === 2 ? { st: "fail", pct: 0, msg: "Yüklenemedi" } : { st: "wait", pct: 0, msg: "Sırada" });
+                istate = s;
+            }
         }
         visible = true;
     }
@@ -347,7 +354,7 @@ Window {
                             Rectangle {
                                 required property var modelData
                                 readonly property bool sel: win.wp === modelData.path || (win.wp.split("/").pop() === modelData.name)
-                                width: wpGrid.cw; height: Math.round(wpGrid.cw * 0.58); radius: 14
+                                width: wpGrid.cw; height: Math.round(wpGrid.cw * 0.68); radius: 14
                                 color: Qt.rgba(1, 1, 1, 0.05)
                                 border.width: sel ? 2 : 1
                                 border.color: sel ? win.accent : Theme.stroke

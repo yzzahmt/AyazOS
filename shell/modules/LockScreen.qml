@@ -103,6 +103,18 @@ Scope {
                         layer.enabled: true
                         layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 1; shadowOpacity: 0.35; shadowColor: "#000" }
                     }
+                    Row {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        visible: Sys.weatherTemp !== ""
+                        spacing: 10
+                        Icon { name: Sys.weatherIcon; size: 22; anchors.verticalCenter: parent.verticalCenter }
+                        Text {
+                            text: Sys.weatherTemp + "  ·  " + Sys.weatherDesc
+                            color: Theme.text; opacity: 0.85
+                            font { family: Theme.font; pixelSize: 17 }
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+                    }
                 }
 
                 // Alt orta: kullanıcı ve parola
