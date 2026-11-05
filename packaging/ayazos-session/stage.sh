@@ -17,3 +17,4 @@ install -Dm644 "$S/ayaz-terminal.desktop" "$DEST/usr/share/applications/ayaz-ter
 install -Dm644 "$S/foot.ini" "$DEST/etc/ayazos/foot.ini"
 install -Dm644 "$S/ayazos-mimeapps.list" "$DEST/usr/share/applications/ayazos-mimeapps.list"
 install -Dm644 "$S/firefox-policies.json" "$DEST/etc/firefox/policies/policies.json"
+install -Dm755 "$S/ayaz-screenshot" "$DEST/usr/bin/ayaz-screenshot"

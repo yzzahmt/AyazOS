@@ -1,0 +1,15 @@
+#!/bin/sh
+# Ekran görüntüsü: Print Screen = alan seç, Shift+Print = tüm ekran.
+# Resimler/Ekran Görüntüleri klasörüne kaydeder, panoya kopyalar ve bildirim gösterir.
+DIR="$(xdg-user-dir PICTURES 2>/dev/null || echo "$HOME/Resimler")/Ekran Görüntüleri"
+mkdir -p "$DIR"
+FILE="$DIR/Ekran görüntüsü $(date '+%Y-%m-%d %H.%M.%S').png"
+if [ "$1" = "--full" ]; then
+    grim "$FILE" || exit 1
+else
+    AREA=$(slurp -b 0a0e1566 -c a9c1f2ff -w 2 2>/dev/null) || exit 0
+    grim -g "$AREA" "$FILE" || exit 1
+fi
+wl-copy < "$FILE"
+ACTION=$(notify-send -a "Ekran görüntüsü" -i "$FILE" -A open=Göster "Ekran görüntüsü alındı" "Panoya kopyalandı ve kaydedildi." 2>/dev/null)
+[ "$ACTION" = open ] && ayaz-gallery "$FILE" &

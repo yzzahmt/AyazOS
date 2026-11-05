@@ -10,3 +10,8 @@ dbus-user-session
 xwayland
 foot
 fonts-jetbrains-mono
+grim
+slurp
+wl-clipboard
+libnotify-bin
+xdg-user-dirs
