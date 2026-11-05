@@ -1,33 +1,49 @@
 # AyazOS
 
-Ubuntu 26.04 LTS tabanlı, GNOME kullanmayan, hızlı ve şık bir masaüstü Linux dağıtımı.
-Hedef: Intel/AMD 64 bit, normal seviye bilgisayarlar.
+Ubuntu 26.04 LTS üzerine kurulu, GNOME kullanmayan, hızlı ve şık bir masaüstü Linux dağıtımı.
+Hedef donanım: normal seviye Intel/AMD 64 bit bilgisayarlar.
 
-## Yapı
-| Katman | Bileşen |
+![Masaüstü](docs/screenshots/desktop.jpg)
+
+## Öne çıkanlar
+- **Kendi masaüstü kabuğu**: Wayfire bileşik yöneticisi üzerinde Quickshell/QML ile yazılmış üst çubuk,
+  sağ dock, su damlası efektiyle açılan başlat menüsü, kontrol merkezi, bildirimler ve kilit ekranı.
+- **Pencere efektleri**: sürüklerken dalgalanma, küçültünce dock'a akma (`compositor/ayaz-effects`),
+  kapatınca camın kırılıp dağılması.
+- **Sistem uygulamaları**: Dosyalar, Ayarlar, Yazılım Merkezi, Sistem Doktoru, Müzik, Galeri.
+  Hepsi tek bir Qt taşıyıcısı (`ayaz-app`) ve ortak tasarım modülü (`AyazOS.UI`) kullanır.
+- **Windows programları**: `.exe` / `.msi` dosyaları çift tıklayınca Wine ile, her biri kendi önekinde açılır.
+- **Oyun**: Steam, GameMode, MangoHud ve arka planda otomatik ekran kartı sürücüsü kurulumu.
+- **Güncellemeler**: imzalı AyazOS APT deposu, arka planda güvenlik güncellemeleri, Firefox Mozilla deposundan (snap yok).
+- **Kurulum**: Calamares ile birkaç adımda; açılışta kara delik animasyonu (Plymouth).
+
+| | |
 |---|---|
-| Bileşik yönetici | Wayfire + AyazOS efekt eklentileri (`compositor/`) |
-| Masaüstü kabuğu | Quickshell / QML (`shell/`) |
-| Giriş | greetd |
-| Kurulum | Calamares |
-| Güncellemeler | İmzalı AyazOS APT deposu |
+| ![Başlat menüsü](docs/screenshots/start-menu.jpg) | ![Dosyalar](docs/screenshots/files.jpg) |
+| ![Kilit ekranı](docs/screenshots/lock-screen.jpg) | ![Ayarlar](docs/screenshots/settings.jpg) |
+| ![Kapatma efekti](docs/screenshots/close-shatter.jpg) | ![Açılış](docs/screenshots/boot.jpg) |
 
-## Dizinler
-```
-branding/   logo, duvar kağıtları, açılış animasyonu
-shell/      üst çubuk, dock, başlat menüsü, kilit ekranı, kontrol merkezi
-compositor/ Wayfire eklentileri
-apps/       sistem uygulamaları
-packaging/  Debian paketleri
-distro/     ISO derleme betikleri
-docs/       ürün ve mimari belgeleri
-```
+## Mimari
+| Katman | Bileşen | Dizin |
+|---|---|---|
+| Bileşik yönetici | Wayfire 0.10 + eklentiler | `compositor/`, `session/wayfire.ini` |
+| Masaüstü kabuğu | Quickshell (QML) | `shell/` |
+| Uygulamalar | Qt 6 + QML | `apps/` |
+| Giriş ekranı | greetd + QML greeter | `shell/greeter.qml` |
+| Marka | logo, duvar kağıtları, Plymouth | `branding/` |
+| Paketler | Debian paketleri | `packaging/` |
+| ISO | debootstrap, casper, Calamares, GRUB | `distro/` |
+| Güncelleme deposu | reprepro + GPG | `repo/` |
 
-## Geliştirme
-Kabuğu çalışan bir Wayfire oturumunda denemek için:
+Ayrıntılar: [docs/SPEC.md](docs/SPEC.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/APP-GUIDE.md](docs/APP-GUIDE.md)
+
+## Derleme
+Derleme bir Ubuntu 26.04 sanal makinesinde yapılır (`scripts/`):
 ```sh
-mkdir -p ~/.config/quickshell && ln -s "$PWD/shell" ~/.config/quickshell/ayazos
-qs -c ayazos
+sudo distro/build-debs.sh                 # amd64 paketleri -> /srv/debs
+repo/publish.sh /srv/debs /srv/repo       # imzalı APT deposu
+sudo distro/build-iso.sh /srv/repo ayazos.iso
 ```
 
-Ayrıntılar: [docs/SPEC.md](docs/SPEC.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+## Durum
+Erken geliştirme aşamasında. Ekran görüntüleri sanal makinede yazılım tabanlı çizimle alınmıştır.

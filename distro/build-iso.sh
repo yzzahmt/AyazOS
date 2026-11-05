@@ -35,7 +35,7 @@ Components: main universe restricted multiverse
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 SRC
 # Derleme sırasında AyazOS paketleri yerel depodan gelir.
-echo "deb [trusted=yes] file:/srv/repo resolute main" > $C/etc/apt/sources.list.d/ayazos-local.list
+[ -d "$REPO/dists" ] && echo "deb [trusted=yes] file:/srv/repo resolute main" > $C/etc/apt/sources.list.d/ayazos-local.list
 cp "$ROOT/repo/mozilla-keyring.asc" $C/usr/share/keyrings/packages.mozilla.org.asc
 cp "$ROOT/repo/mozilla.sources" $C/etc/apt/sources.list.d/mozilla.sources
 mkdir -p $C/etc/apt/preferences.d; cp "$ROOT/repo/apt-preferences" $C/etc/apt/preferences.d/ayazos
@@ -53,6 +53,7 @@ in_chroot "apt-get update -q >/dev/null && apt-get install -y -q \
   language-pack-tr language-pack-en hunspell-tr \
   calamares calamares-settings-ubuntu-common- squashfs-tools rsync \
   >/dev/null"
+[ "${BASE_ONLY:-0}" = 1 ] && { log "temel sistem hazır (BASE_ONLY)"; exit 0; }
 log "AyazOS masaüstü"
 in_chroot "apt-get install -y -q ayazos-desktop >/dev/null"
 in_chroot "apt-get purge -y -q snapd >/dev/null 2>&1 || true; apt-mark hold snapd >/dev/null 2>&1 || true"
