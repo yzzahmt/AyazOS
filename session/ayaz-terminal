@@ -1,0 +1,2 @@
+#!/bin/sh
+exec foot --config=/etc/ayazos/foot.ini "$@"

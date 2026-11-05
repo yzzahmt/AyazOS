@@ -1,0 +1,14 @@
+[Unit]
+Description=AyazOS sürücü algılama
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=!/var/lib/ayazos/drivers.done
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/ayaz-drivers
+Nice=10
+IOSchedulingClass=idle
+
+[Install]
+WantedBy=multi-user.target

@@ -5,7 +5,6 @@ export XDG_SESSION_DESKTOP=ayazos
 export XDG_SESSION_TYPE=wayland
 export QT_QPA_PLATFORM="wayland;xcb"
 export QT_QPA_PLATFORMTHEME=gtk3
-export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
 export GDK_BACKEND="wayland,x11"
 export MOZ_ENABLE_WAYLAND=1
 export ELECTRON_OZONE_PLATFORM_HINT=auto
@@ -14,6 +13,7 @@ export _JAVA_AWT_WM_NONREPARENTING=1
 export QS_ICON_THEME=Papirus-Dark
 
 CONF="${XDG_CONFIG_HOME:-$HOME/.config}/ayazos/wayfire.ini"
+[ -f "$(dirname "$CONF")/shell.json" ] || { mkdir -p "$(dirname "$CONF")"; echo "{}" > "$(dirname "$CONF")/shell.json"; }
 if [ ! -f "$CONF" ]; then
     mkdir -p "$(dirname "$CONF")"
     cp /etc/ayazos/wayfire.ini "$CONF"

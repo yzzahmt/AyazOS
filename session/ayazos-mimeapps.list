@@ -1,0 +1,12 @@
+[Default Applications]
+inode/directory=ayaz-files.desktop
+x-scheme-handler/http=firefox.desktop
+x-scheme-handler/https=firefox.desktop
+text/html=firefox.desktop
+application/pdf=firefox.desktop
+text/plain=veloneon-notes.desktop
+text/markdown=veloneon-notes.desktop
+application/x-ms-dos-executable=ayaz-exe.desktop
+application/x-msdownload=ayaz-exe.desktop
+application/vnd.microsoft.portable-executable=ayaz-exe.desktop
+application/x-msi=ayaz-exe.desktop

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Yazılım Merkezi
+Name[en]=Software Center
+Comment=Uygulama bul, yükle ve güncelle
+Exec=ayaz-store
+Icon=system-software-install
+Terminal=false
+Categories=System;PackageManager;
+Keywords=yazılım;uygulama;yükle;store;apt;flatpak;
+StartupWMClass=ayaz-store

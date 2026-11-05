@@ -1,0 +1,23 @@
+#!/bin/sh
+# Arka planda sürücü algılama. Açılışta bir kez (ve yeni donanım takılınca) çalışır;
+# önerilen sürücü kurulu değilse kurar ve kullanıcıya bildirir.
+set -u
+STAMP=/var/lib/ayazos/drivers.done
+LOG=/var/log/ayazos-drivers.log
+mkdir -p /var/lib/ayazos
+command -v ubuntu-drivers >/dev/null || exit 0
+want=$(ubuntu-drivers list --recommended 2>/dev/null | cut -d, -f1 | tr '\n' ' ')
+[ -z "$want" ] && { touch "$STAMP"; exit 0; }
+missing=""
+for p in $want; do dpkg -s "$p" >/dev/null 2>&1 || missing="$missing $p"; done
+[ -z "$missing" ] && { touch "$STAMP"; exit 0; }
+# İnternet yoksa sonraki açılışa bırak
+curl -fsI --max-time 8 http://archive.ubuntu.com >/dev/null 2>&1 || exit 0
+echo "$(date) kuruluyor:$missing" >> "$LOG"
+if ubuntu-drivers install >> "$LOG" 2>&1; then
+  touch "$STAMP"
+  for u in $(loginctl list-users --no-legend | awk '{print $2}'); do
+    uid=$(id -u "$u"); sudo -u "$u" DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus \
+      notify-send -a "Sürücüler" -i video-display "Sürücü kuruldu" "Ekran kartı sürücüsü kuruldu. Tam performans için bilgisayarı yeniden başlat." 2>/dev/null || true
+  done
+fi

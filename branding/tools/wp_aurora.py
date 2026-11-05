@@ -1,7 +1,7 @@
 from lib import *
 Xp, Yp = np.meshgrid(np.arange(W, dtype=np.float32) + .5, np.arange(H, dtype=np.float32) + .5)
 xn = Xp / H; yn = Yp / H                       # px / H units
-y0 = 0.80                                      # lake line (fraction of H)
+y0 = 0.80                                     # lake line (fraction of H)
 # ---- sky gradient
 t = np.clip(yn / 0.8, 0, 1)
 sky = ramp(t, [(0, (0.004, 0.008, 0.026)), (0.5, (0.008, 0.026, 0.07)), (0.85, (0.02, 0.07, 0.12)), (1, (0.03, 0.10, 0.14))])
@@ -27,25 +27,25 @@ def curtain(seed, base, amp, hgt, c_lo, c_mid, c_hi, gain, shear):
     k = np.clip(d / (hh_ * 1.6), 0, 1)
     col = np.where((k < 0.35)[..., None], mix(c_lo, c_mid, (k / 0.35)[..., None]), mix(c_mid, c_hi, ((k - 0.35) / 0.65)[..., None]))
     return col * (prof * ray * gain)[..., None]
-A = curtain(11, 0.52, 0.10, 0.20, np.array([.25, 1.0, .55]), np.array([.1, .85, .85]), np.array([.55, .25, 1.0]), 0.9, 0.18)
-B = curtain(23, 0.43, 0.08, 0.16, np.array([.2, .95, .7]), np.array([.15, .6, 1.0]), np.array([.75, .2, .9]), 0.55, -0.12)
-C = curtain(37, 0.60, 0.06, 0.10, np.array([.3, 1.0, .5]), np.array([.2, .9, .6]), np.array([.2, .6, 1.0]), 0.5, 0.05)
+A = curtain(11, 0.50, 0.09, 0.075, np.array([.25, 1.0, .55]), np.array([.1, .85, .85]), np.array([.55, .25, 1.0]), 2.0, 0.18)
+B = curtain(23, 0.38, 0.07, 0.07, np.array([.2, .95, .7]), np.array([.15, .6, 1.0]), np.array([.75, .2, .9]), 1.2, -0.12)
+C = curtain(37, 0.585, 0.05, 0.045, np.array([.3, 1.0, .5]), np.array([.2, .9, .6]), np.array([.2, .6, 1.0]), 1.0, 0.05)
 aur = up(A + B + C)
-aur = blur(aur, 1.2 * U) + blur(aur, 30 * U) * 0.35
+aur = blur(aur, 1.5 * U) + blur(aur, 40 * U) * 0.45
 lin = lin + aur * (yn < y0)[..., None]
 amb = blur(aur[::8, ::8], 6)  # coarse ambient (for scene lighting)
 amb_full = resize(amb, W, H)
 # ---- mountains
 def ridge(seed, base, amp, freq, rough):
     x = (np.arange(W, dtype=np.float32) + .5) / H
-    n = fbm(x * freq, np.full_like(x, seed * 3.1), 7, seed=seed, ridged=True) * 0.5 + 0.5 * 0
+    n = (fbm(x * freq, np.full_like(x, seed * 3.1), 7, seed=seed, ridged=True)) ** 1.6
     big = fbm(x * freq * 0.35, np.full_like(x, seed + 0.5), 3, seed=seed + 4)
     return base - amp * (n * 1.0 + 0.5 * big) * rough
 layers = [
-    (101, 0.62, 0.20, 1.0, 1.0, (0.05, 0.09, 0.16), 0.55),
-    (131, 0.67, 0.19, 1.5, 1.0, (0.03, 0.06, 0.11), 0.45),
-    (151, 0.73, 0.16, 2.2, 1.0, (0.015, 0.03, 0.06), 0.30),
-    (171, 0.79, 0.10, 3.0, 1.0, (0.006, 0.012, 0.025), 0.15),
+    (101, 0.60, 0.30, 1.0, 1.0, (0.035, 0.06, 0.11), 0.75),
+    (131, 0.67, 0.27, 1.4, 1.0, (0.02, 0.04, 0.075), 0.65),
+    (151, 0.74, 0.22, 2.0, 1.0, (0.01, 0.02, 0.04), 0.45),
+    (171, 0.80, 0.13, 2.8, 1.0, (0.004, 0.008, 0.016), 0.25),
 ]
 aur_tint = np.array([0.35, 0.95, 0.75], np.float32)
 for seed, base, amp, freq, rough, rock, snowk in layers:
@@ -63,7 +63,7 @@ for seed, base, amp, freq, rough, rock, snowk in layers:
     rim = np.exp(-np.abs(depth) / 0.0016) * (depth > -0.001)
     c = c + (rim * 0.5)[..., None] * (aur_tint * 0.6 + 0.4) * (light + 0.05)
     # haze between layers
-    hz = np.array([0.04, 0.10, 0.12], np.float32) * (1 - snowk) * np.exp(-np.clip(depth, 0, 1) / 0.22)[..., None] * 0.5
+    hz = np.array([0.04, 0.10, 0.12], np.float32) * (1 - snowk) * np.exp(-np.clip(depth, 0, 1) / 0.12)[..., None] * 0.12
     c = c + hz
     lin = lin * (1 - mask) + c * mask
 # ---- lake reflection

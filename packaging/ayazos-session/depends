@@ -8,3 +8,5 @@ xdg-desktop-portal-wlr
 xdg-desktop-portal-gtk
 dbus-user-session
 xwayland
+foot
+fonts-jetbrains-mono

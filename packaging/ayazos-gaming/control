@@ -1,0 +1,9 @@
+Package: ayazos-gaming
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: games
+Priority: optional
+Description: AyazOS gaming tools and automatic driver setup
+ Steam, GameMode, MangoHud, Vulkan and background GPU driver detection.

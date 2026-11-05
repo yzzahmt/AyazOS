@@ -15,7 +15,7 @@ PanelWindow {
     WlrLayershell.namespace: "ayaz-desktop"
     WlrLayershell.layer: WlrLayer.Background
 
-    property string wallpaper: "/usr/share/backgrounds/ayazos/default.jpg"
+    readonly property string wallpaper: Shell.wallpaper
 
     Image {
         anchors.fill: parent

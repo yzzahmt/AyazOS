@@ -1,0 +1,45 @@
+{
+ "hero": ["steam","blender","vscode","telegram"],
+ "rows": [
+  {"title":"Öne çıkanlar","ids":["firefox","vlc","gimp","libreoffice","telegram","steam","obsidian"]},
+  {"title":"Oyunlar","ids":["steam","heroic","lutris","bottles"]},
+  {"title":"Üretkenlik","ids":["libreoffice","onlyoffice","obsidian","thunderbird"]},
+  {"title":"Yaratıcılık","ids":["gimp","krita","blender","inkscape","kdenlive"]},
+  {"title":"İletişim","ids":["telegram","discord","thunderbird","signal"]},
+  {"title":"Geliştirme","ids":["vscode","git-cola","postman","dbeaver"]}
+ ],
+ "apps": {
+  "steam":{"name":"Steam","tagline":"Binlerce oyun, tek kütüphane","pkg":"steam-installer","flatpak":"com.valvesoftware.Steam","icon":"steam","lucide":"gamepad-2","c1":"#1B2A4A","c2":"#2F5D8C","dev":"Valve"},
+  "heroic":{"name":"Heroic Games Launcher","tagline":"Epic ve GOG oyunların bir arada","pkg":"","flatpak":"com.heroicgameslauncher.hgl","icon":"heroic","lucide":"gamepad-2","c1":"#2A2150","c2":"#5B4BB0","dev":"Heroic Games Launcher"},
+  "lutris":{"name":"Lutris","tagline":"Tüm oyun platformları tek çatı altında","pkg":"lutris","flatpak":"net.lutris.Lutris","icon":"lutris","lucide":"gamepad-2","c1":"#4A2A1B","c2":"#B0693A","dev":"Lutris Takımı"},
+  "bottles":{"name":"Bottles","tagline":"Windows uygulamalarını kolayca çalıştır","pkg":"","flatpak":"com.usebottles.bottles","icon":"bottles","lucide":"package","c1":"#3A1B4A","c2":"#8A4BB0","dev":"Bottles Geliştiricileri"},
+  "libreoffice":{"name":"LibreOffice","tagline":"Tam donanımlı ofis paketi","pkg":"libreoffice","flatpak":"org.libreoffice.LibreOffice","icon":"libreoffice-startcenter","lucide":"file-text","c1":"#14403A","c2":"#2E9C84","dev":"The Document Foundation"},
+  "onlyoffice":{"name":"ONLYOFFICE","tagline":"Word ve Excel ile uyumlu ofis","pkg":"","flatpak":"org.onlyoffice.desktopeditors","icon":"onlyoffice-desktopeditors","lucide":"file-text","c1":"#3A2A14","c2":"#C98A3A","dev":"Ascensio System SIA"},
+  "obsidian":{"name":"Obsidian","tagline":"Notlarını birbirine bağla","pkg":"","flatpak":"md.obsidian.Obsidian","icon":"obsidian","lucide":"notebook-pen","c1":"#2A1B4A","c2":"#7C5CE0","dev":"Obsidian"},
+  "thunderbird":{"name":"Thunderbird","tagline":"E-postalarını düzenli tut","pkg":"thunderbird","flatpak":"org.mozilla.Thunderbird","icon":"thunderbird","lucide":"globe","c1":"#14304A","c2":"#3A7CC9","dev":"Mozilla"},
+  "gimp":{"name":"GIMP","tagline":"Güçlü fotoğraf düzenleme","pkg":"gimp","flatpak":"org.gimp.GIMP","icon":"gimp","lucide":"image","c1":"#3A3220","c2":"#8C7A4A","dev":"GIMP Takımı"},
+  "krita":{"name":"Krita","tagline":"Dijital çizim ve illüstrasyon","pkg":"krita","flatpak":"org.kde.krita","icon":"krita","lucide":"pen-tool","c1":"#1B3A4A","c2":"#3AA0C9","dev":"KDE"},
+  "blender":{"name":"Blender","tagline":"3B modelleme, animasyon ve render","pkg":"blender","flatpak":"org.blender.Blender","icon":"blender","lucide":"layers","c1":"#4A2A14","c2":"#E0833A","dev":"Blender Vakfı"},
+  "inkscape":{"name":"Inkscape","tagline":"Vektörel çizim","pkg":"inkscape","flatpak":"org.inkscape.Inkscape","icon":"org.inkscape.Inkscape","lucide":"pen-tool","c1":"#1B2A3A","c2":"#4A6A8C","dev":"Inkscape Takımı"},
+  "kdenlive":{"name":"Kdenlive","tagline":"Profesyonel video kurgu","pkg":"kdenlive","flatpak":"org.kde.kdenlive","icon":"kdenlive","lucide":"film","c1":"#1B3A5A","c2":"#3A8CD0","dev":"KDE"},
+  "telegram":{"name":"Telegram","tagline":"Hızlı ve güvenli mesajlaşma","pkg":"telegram-desktop","flatpak":"org.telegram.desktop","icon":"telegram","lucide":"globe","c1":"#14405A","c2":"#2AABEE","dev":"Telegram"},
+  "discord":{"name":"Discord","tagline":"Arkadaşlarınla sesli ve yazılı sohbet","pkg":"","flatpak":"com.discordapp.Discord","icon":"discord","lucide":"mic","c1":"#2A2F5A","c2":"#5865F2","dev":"Discord Inc."},
+  "signal":{"name":"Signal","tagline":"Gizliliği öncelikli mesajlaşma","pkg":"","flatpak":"org.signal.Signal","icon":"signal-desktop","lucide":"lock","c1":"#1B2F5A","c2":"#3A76F0","dev":"Signal Foundation"},
+  "vscode":{"name":"Visual Studio Code","tagline":"Her dil için kod editörü","pkg":"","flatpak":"com.visualstudio.code","icon":"vscode","lucide":"code-xml","c1":"#10304A","c2":"#2F80C9","dev":"Microsoft"},
+  "git-cola":{"name":"Git Cola","tagline":"Git için görsel arayüz","pkg":"git-cola","flatpak":"","icon":"git-cola","lucide":"code-xml","c1":"#3A1B1B","c2":"#C95A3A","dev":"Git Cola"},
+  "postman":{"name":"Postman","tagline":"API'leri dene ve test et","pkg":"","flatpak":"com.getpostman.Postman","icon":"postman","lucide":"cloud","c1":"#4A2A14","c2":"#EF5B25","dev":"Postman Inc."},
+  "dbeaver":{"name":"DBeaver","tagline":"Veritabanlarını tek yerden yönet","pkg":"","flatpak":"io.dbeaver.DBeaverCommunity","icon":"dbeaver","lucide":"hard-drive","c1":"#2A2A1B","c2":"#8C7A3A","dev":"DBeaver"},
+  "firefox":{"name":"Firefox","tagline":"Hızlı, özgür web tarayıcısı","pkg":"firefox","flatpak":"org.mozilla.firefox","icon":"firefox","lucide":"globe","c1":"#4A1B2A","c2":"#E0603A","dev":"Mozilla"},
+  "vlc":{"name":"VLC","tagline":"Her formatı oynatan medya oynatıcı","pkg":"vlc","flatpak":"org.videolan.VLC","icon":"vlc","lucide":"play","c1":"#4A2F10","c2":"#F08A1C","dev":"VideoLAN"}
+ },
+ "categories": [
+  {"id":"games","label":"Oyunlar","icon":"gamepad-2"},
+  {"id":"office","label":"Ofis","icon":"file-text"},
+  {"id":"graphics","label":"Grafik ve Tasarım","icon":"palette"},
+  {"id":"media","label":"Ses ve Video","icon":"film"},
+  {"id":"internet","label":"İnternet ve İletişim","icon":"globe"},
+  {"id":"dev","label":"Geliştirme","icon":"code-xml"},
+  {"id":"utils","label":"Araçlar","icon":"wrench"},
+  {"id":"edu","label":"Eğitim ve Bilim","icon":"sparkles"}
+ ]
+}

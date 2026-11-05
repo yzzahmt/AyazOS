@@ -14,7 +14,7 @@ import "../components"
 Scope {
     id: root
     property bool unlocking: false
-    property string wallpaper: "/usr/share/backgrounds/ayazos/default.jpg"
+    readonly property string wallpaper: Shell.wallpaper
 
     function lockNow() { unlocking = false; lock.locked = true; }
 

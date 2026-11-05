@@ -13,6 +13,28 @@ Singleton {
     property int workspace: 1
     property int workspaceCount: 3
 
+    // Kullanıcı ayarları: ~/.config/ayazos/shell.json (Ayarlar uygulaması yazar).
+    readonly property string wallpaper: cfg.wallpaper || "/usr/share/backgrounds/ayazos/default.jpg"
+    readonly property string glass: cfg.glass || "high"      // high | balanced | battery
+    readonly property bool animations: cfg.animations !== false
+
+    FileView {
+        id: cfgFile
+        path: Quickshell.env("HOME") + "/.config/ayazos/shell.json"
+        watchChanges: true
+        onFileChanged: reload()
+        onLoadFailed: {}
+        JsonAdapter {
+            id: cfg
+            property string wallpaper: ""
+            property string accent: ""
+            property string glass: ""
+            property var animations: true
+        }
+    }
+    onGlassChanged: Theme.lowPower = (glass === "battery")
+    Binding { target: Theme; property: "accent"; value: cfg.accent || "#A9C1F2"; when: true }
+
     // Dock'a sabitlenen uygulamalar (masaüstü dosyası kimliği, simge).
     readonly property var pinned: [
         { id: "ayaz-files", icon: "folder", name: "Dosyalar" },

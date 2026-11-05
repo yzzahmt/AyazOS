@@ -1,0 +1,9 @@
+Package: ayazos-wine
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: otherosfs
+Priority: optional
+Description: Run Windows programs with a double click
+ Opens .exe and .msi files with Wine, each in its own prefix, with DXVK.

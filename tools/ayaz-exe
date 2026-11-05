@@ -1,0 +1,33 @@
+#!/bin/bash
+# Windows programlarını çift tıklamayla açar (.exe, .msi, .bat).
+# Her program kendi Wine önekinde (ayrı "C:" sürücüsü) çalışır; böylece biri
+# diğerini bozmaz. İlk açılışta önek hazırlanır ve kullanıcıya bildirim gösterilir.
+set -u
+FILE=$(realpath "$1"); shift
+NAME=$(basename "$FILE"); BASE=${NAME%.*}
+ROOT="${XDG_DATA_HOME:-$HOME/.local/share}/ayazos/wine"
+# Kurulum dosyaları (setup/installer/msi) ortak "programlar" önekine kurulur,
+# tek başına çalışan programlar kendi önekini alır.
+case "${NAME,,}" in
+  *setup*|*install*|*.msi) PREFIX="$ROOT/programlar" ;;
+  *) PREFIX="$ROOT/$(echo "$BASE" | tr -cs '[:alnum:]' '-' | tr '[:upper:]' '[:lower:]' | sed 's/-*$//')" ;;
+esac
+export WINEPREFIX="$PREFIX" WINEDEBUG=-all WINEARCH=win64
+notify() { command -v notify-send >/dev/null && notify-send -a "Windows uygulamaları" -i wine "$1" "$2"; }
+
+if [ ! -d "$PREFIX/drive_c" ]; then
+  notify "Hazırlanıyor" "$NAME ilk kez açılıyor, bu bir dakika sürebilir."
+  mkdir -p "$PREFIX"
+  WINEDLLOVERRIDES="mscoree,mshtml=" wineboot -u >/dev/null 2>&1
+  # DirectX → Vulkan (oyunlar ve 3B uygulamalar için)
+  if command -v setup_dxvk >/dev/null; then setup_dxvk install >/dev/null 2>&1; fi
+  # Yüksek DPI ve Türkçe yerel ayar
+  wine reg add 'HKCU\Control Panel\International' /v LocaleName /d tr-TR /f >/dev/null 2>&1
+fi
+
+cd "$(dirname "$FILE")"
+case "${NAME,,}" in
+  *.msi) exec wine msiexec /i "$FILE" "$@" ;;
+  *.bat|*.cmd) exec wine cmd /c "$FILE" "$@" ;;
+  *) exec gamemoderun wine "$FILE" "$@" 2>/dev/null || exec wine "$FILE" "$@" ;;
+esac

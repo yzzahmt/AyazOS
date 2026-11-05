@@ -1,0 +1,236 @@
+#!/usr/bin/python3
+# AyazOS Yazılım Merkezi arka ucu. Çıktı: satır başına bir JSON nesnesi.
+#   featured | search <q> | category <c> | installed | details <id> [pkg] [flatpak]
+#   icons <ad>... | status <pkg> <flatpakid> | install <id> <apt|flatpak> | remove <id> <apt|flatpak>
+#   launch <id> <apt|flatpak> | meta
+import sys, os, re, json, glob, subprocess, shutil
+
+def out(o):
+    sys.stdout.write(json.dumps(o, ensure_ascii=False) + "\n"); sys.stdout.flush()
+
+def run(cmd, timeout=60):
+    try:
+        return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout).stdout
+    except Exception:
+        return ""
+
+HAS_FLATPAK = shutil.which("flatpak") is not None
+ICON_DIRS = ["/usr/share/icons/Papirus/64x64/apps", "/usr/share/icons/hicolor/128x128/apps",
+             "/usr/share/icons/hicolor/scalable/apps", "/usr/share/icons/hicolor/64x64/apps",
+             "/usr/share/icons/hicolor/256x256/apps", "/usr/share/icons/hicolor/48x48/apps",
+             "/usr/share/pixmaps", "/var/lib/flatpak/exports/share/icons/hicolor/128x128/apps",
+             "/var/lib/flatpak/appstream/flathub/x86_64/active/icons/128x128",
+             os.path.expanduser("~/.local/share/flatpak/exports/share/icons/hicolor/128x128/apps")]
+
+def find_icon(name):
+    if not name: return ""
+    if name.startswith("/") and os.path.exists(name): return name
+    for d in ICON_DIRS:
+        for ext in (".svg", ".png"):
+            p = os.path.join(d, name + ext)
+            if os.path.exists(p): return p
+    g = glob.glob("/usr/share/icons/*/*/apps/" + name + ".*")
+    return g[0] if g else ""
+
+def parse_search(text):
+    res = []
+    for blk in text.split("---"):
+        d = {}
+        for ln in blk.strip().splitlines():
+            if ln.startswith("Identifier:"):
+                m = re.match(r"Identifier:\s*(\S+)\s*\[(.*)\]", ln)
+                d["id"] = m.group(1) if m else ln.split(":", 1)[1].strip()
+                d["kind"] = m.group(2) if m else ""
+            elif ": " in ln:
+                k, v = ln.split(": ", 1); d[k.strip().lower()] = v.strip()
+        if d.get("id") and d.get("kind") == "desktop-application":
+            res.append(d)
+    return res
+
+def apt_installed(pkg):
+    s = run(["dpkg-query", "-W", "-f=${Status}", pkg])
+    return s.endswith("installed") and "not-installed" not in s and "deinstall" not in s
+
+def fp_installed(fid):
+    if not HAS_FLATPAK or not fid: return False
+    return subprocess.run(["flatpak", "info", fid], capture_output=True).returncode == 0
+
+def app_obj(d, source="apt"):
+    pkg = d.get("package", "")
+    return {"type": "app", "id": d["id"], "name": d.get("name", d["id"]), "summary": d.get("summary", ""),
+            "pkg": pkg, "source": source, "icon": find_icon(d.get("icon", "")),
+            "installed": apt_installed(pkg) if source == "apt" and pkg else False}
+
+CATS = {
+    "games": ["game", "steam", "emulator"], "office": ["office", "document editor", "spreadsheet", "pdf"],
+    "graphics": ["image editor", "drawing", "3d", "photo"], "media": ["video player", "music player", "audio editor"],
+    "internet": ["web browser", "chat", "email", "torrent"], "dev": ["code editor", "ide", "git"],
+    "utils": ["system monitor", "archive", "screenshot", "disk"], "edu": ["education", "learning", "science"],
+}
+
+def cmd_search(q, limit=40):
+    seen = set()
+    for r in parse_search(run(["appstreamcli", "search", q])):
+        if r.get("package") in seen: continue
+        seen.add(r.get("package"))
+        out(app_obj(r))
+        if len(seen) >= limit: break
+    if HAS_FLATPAK:
+        for ln in run(["flatpak", "search", "--columns=application,name,description", q], 40).splitlines()[:15]:
+            c = ln.split("\t")
+            if len(c) >= 2 and "." in c[0]:
+                out({"type": "app", "id": c[0], "name": c[1], "summary": c[2] if len(c) > 2 else "", "pkg": "",
+                     "source": "flatpak", "icon": find_icon(c[0]), "installed": fp_installed(c[0])})
+    out({"type": "done"})
+
+def cmd_category(c):
+    seen = set(); n = 0
+    for q in CATS.get(c, [c]):
+        for r in parse_search(run(["appstreamcli", "search", q])):
+            if r.get("package") in seen or r["id"].endswith(".desktop") and False: continue
+            seen.add(r.get("package")); out(app_obj(r)); n += 1
+            if n >= 48: break
+        if n >= 48: break
+    out({"type": "done"})
+
+def desktop_name(path):
+    name = ""; icon = ""; nod = False
+    try:
+        for ln in open(path, errors="ignore"):
+            if ln.startswith("[") and "Desktop Entry" not in ln: break
+            if ln.startswith("Name=") and not name: name = ln[5:].strip()
+            elif ln.startswith("Name[tr]="): name = ln[9:].strip()
+            elif ln.startswith("Icon="): icon = ln[5:].strip()
+            elif ln.startswith("NoDisplay=true"): nod = True
+    except Exception: pass
+    return name, icon, nod
+
+def cmd_installed():
+    manual = set(run(["apt-mark", "showmanual"]).split())
+    # paket -> .desktop dosyası
+    pkgdesk = {}
+    for lf in glob.glob("/var/lib/dpkg/info/*.list"):
+        pkg = os.path.basename(lf)[:-5].split(":")[0]
+        if pkg not in manual or pkg.startswith(("ayaz", "ubuntu-", "gnome-", "xdg-", "language-")): continue
+        try:
+            for ln in open(lf):
+                if ln.startswith("/usr/share/applications/") and ln.strip().endswith(".desktop"):
+                    pkgdesk[pkg] = ln.strip(); break
+        except Exception: pass
+    for pkg, df in sorted(pkgdesk.items()):
+        name, icon, nod = desktop_name(df)
+        if nod or not name: continue
+        summ = run(["dpkg-query", "-W", "-f=${binary:Summary}", pkg]).strip()
+        out({"type": "app", "id": os.path.basename(df)[:-8], "name": name, "summary": summ, "pkg": pkg,
+             "source": "apt", "icon": find_icon(icon), "installed": True})
+    if HAS_FLATPAK:
+        for ln in run(["flatpak", "list", "--app", "--columns=application,name,description"]).splitlines():
+            c = ln.split("\t")
+            if len(c) >= 2:
+                out({"type": "app", "id": c[0], "name": c[1], "summary": c[2] if len(c) > 2 else "", "pkg": "",
+                     "source": "flatpak", "icon": find_icon(c[0]), "installed": True})
+    out({"type": "done"})
+
+def cmd_details(aid, pkg="", fid=""):
+    d = {"type": "details", "id": aid, "pkg": pkg, "flatpak": fid, "description": "", "developer": "", "homepage": "",
+         "screenshots": [], "size": "", "version": "", "apt_installed": False, "flatpak_installed": False,
+         "apt_available": False, "flatpak_available": HAS_FLATPAK and bool(fid)}
+    if pkg:
+        txt = run(["appstreamcli", "get", aid])
+        desc = []; grab = False
+        for ln in txt.splitlines():
+            if ln.startswith("Description:"): grab = True; continue
+            if grab:
+                if re.match(r"^\S", ln): grab = False
+                else: desc.append(ln.strip())
+            m = re.match(r"(Developer|Homepage|Project\s?License):\s*(.*)", ln)
+            if m and m.group(1) == "Developer": d["developer"] = m.group(2)
+            if ln.startswith("Homepage:"): d["homepage"] = ln.split(":", 1)[1].strip()
+            if ln.strip().startswith("- ") and "http" in ln and ("png" in ln or "jpg" in ln): d["screenshots"].append(ln.strip()[2:])
+        d["description"] = re.sub(r"\s+", " ", " ".join(desc)).strip()
+        info = run(["apt-cache", "show", pkg])
+        if info:
+            d["apt_available"] = True
+            m = re.search(r"^Installed-Size:\s*(\d+)", info, re.M)
+            if m: d["size"] = int(m.group(1)) * 1024
+            m = re.search(r"^Version:\s*(\S+)", info, re.M)
+            if m: d["version"] = m.group(1)
+            if not d["description"]:
+                m = re.search(r"^Description(?:-\w+)?:\s*(.*(?:\n .*)*)", info, re.M)
+                if m: d["description"] = re.sub(r"\s+", " ", m.group(1)).strip()
+        d["apt_installed"] = apt_installed(pkg)
+    if fid and HAS_FLATPAK:
+        d["flatpak_installed"] = fp_installed(fid)
+        info = run(["flatpak", "remote-info", "flathub", fid], 30)
+        m = re.search(r"Installed:\s*(.+)", info) or re.search(r"Download:\s*(.+)", info)
+        if m and not d["size"]: d["flatpak_size"] = m.group(1).strip()
+        m = re.search(r"Version:\s*(\S+)", info)
+        if m and not d["version"]: d["version"] = m.group(1)
+    out(d); out({"type": "done"})
+
+def cmd_status(pkg, fid):
+    out({"type": "status", "apt_installed": bool(pkg) and apt_installed(pkg), "apt_available": bool(pkg) and bool(run(["apt-cache", "policy", pkg]).count("Candidate: (none)") == 0 and run(["apt-cache", "policy", pkg]).strip()),
+         "flatpak_installed": fp_installed(fid), "flatpak_available": HAS_FLATPAK and bool(fid)})
+    out({"type": "done"})
+
+def stream(cmd, parser):
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+    for ln in p.stdout:
+        r = parser(ln.strip())
+        if r: out(r)
+    p.wait()
+    out({"type": "done", "ok": p.returncode == 0, "code": p.returncode})
+
+def apt_parser(verb):
+    def f(ln):
+        m = re.match(r"(dlstatus|pmstatus):([^:]*):([\d.]+):(.*)", ln)
+        if m:
+            pct = float(m.group(3)); msg = m.group(4)
+            if m.group(1) == "dlstatus": pct *= 0.5; msg = "İndiriliyor"
+            else: pct = 50 + pct * 0.5 if verb == "install" else pct; msg = "Kuruluyor" if verb == "install" else "Kaldırılıyor"
+            return {"type": "progress", "pct": round(pct, 1), "msg": msg}
+        return None
+    return f
+
+def fp_parser(ln):
+    m = re.search(r"(\d{1,3})%", ln)
+    if m: return {"type": "progress", "pct": int(m.group(1)), "msg": "İndiriliyor ve kuruluyor"}
+    return None
+
+def cmd_install(aid, src, remove=False):
+    if src == "flatpak":
+        if remove: stream(["flatpak", "uninstall", "-y", "--noninteractive", aid], fp_parser)
+        else:
+            if subprocess.run(["flatpak", "remote-add", "--if-not-exists", "--user", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo"], capture_output=True).returncode != 0: pass
+            stream(["flatpak", "install", "-y", "--noninteractive", "--user", "flathub", aid], fp_parser)
+    else:
+        pre = [] if os.geteuid() == 0 else ["pkexec"]
+        verb = "remove" if remove else "install"
+        stream(pre + ["env", "DEBIAN_FRONTEND=noninteractive", "apt-get", verb, "-y", "-o", "APT::Status-Fd=1", aid], apt_parser(verb))
+
+def cmd_launch(aid, src):
+    if src == "flatpak": cmd = ["flatpak", "run", aid]
+    else: cmd = ["gtk-launch", aid.replace(".desktop", "")]
+    subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+    out({"type": "done"})
+
+def main():
+    a = sys.argv[1:]
+    if not a: print("kullanım: ayaz-store-backend featured|search|category|installed|details|install|remove|launch|icons|status"); return 2
+    c = a[0]
+    if c == "search": cmd_search(" ".join(a[1:]))
+    elif c == "category": cmd_category(a[1])
+    elif c in ("installed",): cmd_installed()
+    elif c == "details": cmd_details(a[1], a[2] if len(a) > 2 else "", a[3] if len(a) > 3 else "")
+    elif c == "status": cmd_status(a[1], a[2] if len(a) > 2 else "")
+    elif c == "install": cmd_install(a[1], a[2])
+    elif c == "remove": cmd_install(a[1], a[2], True)
+    elif c == "launch": cmd_launch(a[1], a[2])
+    elif c == "icons":
+        out({"type": "icons", "map": {n: find_icon(n) for n in a[1:]}})
+    elif c == "featured":
+        # Seçki catalog.json içinde; burada yalnızca durum bilgisi sağlanır.
+        out({"type": "meta", "flatpak": HAS_FLATPAK}); out({"type": "done"})
+    elif c == "meta":
+        out({"type": "meta", "flatpak": HAS_FLATPAK}); out({"type": "done"})
+main()
