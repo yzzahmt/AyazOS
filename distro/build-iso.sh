@@ -21,6 +21,8 @@ fi
 mounts
 cp /etc/resolv.conf $C/etc/resolv.conf 2>/dev/null || true
 rm -f $C/etc/apt/sources.list.d/ubuntu.sources $C/etc/apt/sources.list
+# Uzak AyazOS deposu derleme sırasında kapalı (yerel depo kullanılır)
+[ -f $C/etc/apt/sources.list.d/ayazos.sources ] && mv $C/etc/apt/sources.list.d/ayazos.sources $C/etc/apt/sources.list.d/ayazos.sources.off
 cat > $C/etc/apt/sources.list.d/ubuntu.sources <<SRC
 Types: deb
 URIs: $M
@@ -104,6 +106,7 @@ mkdir -p $C/etc/systemd/system/apt-daily-upgrade.timer.d
 printf '[Timer]\nOnBootSec=\nOnBootSec=40min\n' > $C/etc/systemd/system/apt-daily-upgrade.timer.d/ayazos.conf
 in_chroot "plymouth-set-default-theme ayazos 2>/dev/null || true; update-initramfs -u -k all >/dev/null 2>&1"
 rm -f $C/usr/sbin/policy-rc.d $C/etc/apt/sources.list.d/ayazos-local.list
+rm -f $C/etc/apt/sources.list.d/ayazos.sources.off
 cp "$ROOT/repo/ayazos.sources" $C/etc/apt/sources.list.d/ayazos.sources
 in_chroot "apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; : > /etc/machine-id"
 
