@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 360" width="1240" height="360">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 360" width="1100" height="360">
   <g transform="translate(20 20) scale(0.6406)">
   <defs>
     <linearGradient id="w_shardL" x1="0" y1="0" x2="1" y2="1">
@@ -32,5 +32,5 @@
   </g>
   <circle cx="401" cy="236" r="9" fill="#FFFFFF"/>
   </g>
-  <text x="400" y="232" font-family="Inter, 'Inter Display', sans-serif" font-weight="300" font-size="150" letter-spacing="26" fill="#FFFFFF">AyazOS</text>
+  <text x="400" y="232" font-family="Inter, 'Inter Display', sans-serif" font-weight="300" font-size="150" letter-spacing="15" fill="#FFFFFF">AyazOS</text>
 </svg>

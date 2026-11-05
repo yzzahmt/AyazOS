@@ -1,0 +1,294 @@
+#!/usr/bin/python3
+"""AyazOS Müzik yardımcısı: mpv IPC köprüsü ve kitaplık tarayıcısı.
+
+  watch                 mpv'yi (gerekirse) başlatır, özellik değişikliklerini JSON satırı olarak yazar
+  ctl <json-dizi>       mpv'ye tek komut gönderir
+  play <json-yollar> <i> kuyruğu yükleyip i. parçadan çalar
+  scan [klasör...]      kitaplığı tarar, önbelleği günceller
+  load                  önbellek + çalma listelerini yazdırır
+  playlists <json>      çalma listelerini kaydeder
+"""
+import sys, os, json, socket, subprocess, time, select, hashlib, glob
+
+HOME = os.path.expanduser("~")
+RT = os.environ.get("XDG_RUNTIME_DIR") or "/tmp"
+SOCK = os.path.join(RT, "ayaz-music.sock")
+CACHE = os.path.join(os.environ.get("XDG_CACHE_HOME", HOME + "/.cache"), "ayazos")
+CONF = os.path.join(os.environ.get("XDG_CONFIG_HOME", HOME + "/.config"), "ayazos")
+LIB = os.path.join(CACHE, "music.json")
+COVERS = os.path.join(CACHE, "covers")
+PLS = os.path.join(CONF, "music-playlists.json")
+EXT = {".mp3", ".flac", ".ogg", ".oga", ".opus", ".m4a", ".aac", ".wav", ".wma", ".alac", ".ape", ".mka"}
+
+
+def connect(timeout=0.0):
+    end = time.time() + timeout
+    while True:
+        s = socket.socket(socket.AF_UNIX)
+        try:
+            s.connect(SOCK)
+            return s
+        except OSError:
+            s.close()
+            if time.time() >= end:
+                return None
+            time.sleep(0.1)
+
+
+def spawn_mpv():
+    args = ["mpv", "--idle=yes", "--no-video", "--no-terminal", "--force-window=no",
+            "--audio-display=no", "--volume=80", "--vo=null", "--input-ipc-server=" + SOCK,
+            "--replaygain=track", "--audio-client-name=Müzik"]
+    if os.environ.get("AYAZ_MUSIC_AO"):
+        args.append("--ao=" + os.environ["AYAZ_MUSIC_AO"])
+    if not os.path.exists("/etc/mpv/scripts/mpris.so"):
+        for c in glob.glob("/usr/lib/*/mpv-mpris/mpris.so") + glob.glob("/usr/lib/mpv-mpris/mpris.so"):
+            args.append("--script=" + c)
+            break
+    try:
+        os.unlink(SOCK)
+    except OSError:
+        pass
+    subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                     stderr=subprocess.DEVNULL, start_new_session=True)
+
+
+def ensure():
+    s = connect()
+    if s:
+        return s
+    import fcntl
+    lk = open(SOCK + ".lock", "w")
+    fcntl.flock(lk, fcntl.LOCK_EX)
+    s = connect()
+    if not s:
+        spawn_mpv()
+        s = connect(6.0)
+    fcntl.flock(lk, fcntl.LOCK_UN)
+    return s
+
+
+def rpc(s, cmd):
+    s.sendall((json.dumps({"command": cmd}) + "\n").encode())
+    buf = b""
+    s.settimeout(5)
+    while True:
+        buf += s.recv(65536)
+        for line in buf.split(b"\n"):
+            try:
+                d = json.loads(line)
+            except ValueError:
+                continue
+            if "error" in d:
+                return d
+        if not buf:
+            return {"error": "closed"}
+
+
+def out(o):
+    sys.stdout.write(json.dumps(o, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+PROPS = ["pause", "time-pos", "duration", "volume", "mute", "path", "idle-active", "loop-playlist",
+         "loop-file", "playlist-pos", "playlist-count", "metadata", "media-title"]
+
+
+def watch():
+    last_pos = 0.0
+    while True:
+        s = ensure()
+        if not s:
+            out({"p": "error", "v": "mpv başlatılamadı"})
+            time.sleep(2)
+            continue
+        for i, p in enumerate(PROPS):
+            s.sendall((json.dumps({"command": ["observe_property", i + 1, p]}) + "\n").encode())
+        out({"p": "connected", "v": True})
+        buf = b""
+        try:
+            while True:
+                data = s.recv(65536)
+                if not data:
+                    break
+                buf += data
+                *lines, buf = buf.split(b"\n")
+                for line in lines:
+                    try:
+                        d = json.loads(line)
+                    except ValueError:
+                        continue
+                    if d.get("event") == "property-change":
+                        n = d.get("name")
+                        if n == "time-pos":
+                            now = time.time()
+                            if now - last_pos < 0.2:
+                                continue
+                            last_pos = now
+                        out({"p": n, "v": d.get("data")})
+                    elif d.get("event") == "end-file":
+                        out({"p": "end-file", "v": d.get("reason")})
+        except OSError:
+            pass
+        out({"p": "connected", "v": False})
+        time.sleep(1)
+
+
+def play(paths, idx):
+    s = ensure()
+    if not s:
+        return
+    rpc(s, ["loadfile", paths[idx], "replace"])
+    for p in paths[idx + 1:]:
+        rpc(s, ["loadfile", p, "append"])
+    for i, p in enumerate(paths[:idx]):
+        rpc(s, ["loadfile", p, "insert-at", i])
+    rpc(s, ["set_property", "pause", False])
+
+
+def probe(path):
+    r = subprocess.run(["ffprobe", "-v", "quiet", "-print_format", "json", "-show_format", "-show_streams", path],
+                       capture_output=True, text=True)
+    try:
+        return json.loads(r.stdout)
+    except ValueError:
+        return {}
+
+
+def tag(tags, *names):
+    low = {k.lower(): v for k, v in (tags or {}).items()}
+    for n in names:
+        if low.get(n):
+            return str(low[n]).strip()
+    return ""
+
+
+def num(v):
+    try:
+        return int(str(v).split("/")[0])
+    except ValueError:
+        return 0
+
+
+def music_dirs():
+    dirs = [HOME + "/Müzik", HOME + "/Music"]
+    try:
+        for l in open(HOME + "/.config/user-dirs.dirs"):
+            if l.startswith("XDG_MUSIC_DIR="):
+                dirs.append(l.split("=", 1)[1].strip().strip('"').replace("$HOME", HOME))
+    except OSError:
+        pass
+    seen, res = set(), []
+    for d in dirs:
+        r = os.path.realpath(d)
+        if r not in seen and os.path.isdir(r):
+            seen.add(r)
+            res.append(r)
+    return res
+
+
+def extract_cover(path, d, streams, key):
+    dst = os.path.join(COVERS, key + ".jpg")
+    if os.path.exists(dst):
+        return dst
+    has_art = any(st.get("codec_type") == "video" for st in streams)
+    if has_art:
+        subprocess.run(["ffmpeg", "-v", "quiet", "-y", "-i", path, "-an", "-map", "0:v:0", "-frames:v", "1",
+                        "-vf", "scale=640:640:force_original_aspect_ratio=decrease", dst],
+                       stdin=subprocess.DEVNULL)
+        if os.path.exists(dst) and os.path.getsize(dst) > 0:
+            return dst
+    for n in ("cover", "folder", "front", "album", "Cover", "Folder", "Front"):
+        for e in ("jpg", "jpeg", "png"):
+            f = os.path.join(d, n + "." + e)
+            if os.path.exists(f):
+                subprocess.run(["ffmpeg", "-v", "quiet", "-y", "-i", f, "-frames:v", "1", "-vf",
+                                "scale=640:640:force_original_aspect_ratio=decrease", dst],
+                               stdin=subprocess.DEVNULL)
+                if os.path.exists(dst) and os.path.getsize(dst) > 0:
+                    return dst
+    return ""
+
+
+def scan(dirs):
+    os.makedirs(COVERS, exist_ok=True)
+    old = {}
+    try:
+        old = {t["path"]: t for t in json.load(open(LIB))}
+    except (OSError, ValueError):
+        pass
+    tracks = []
+    for root in dirs or music_dirs():
+        for dp, dn, fn in os.walk(root):
+            dn[:] = [x for x in dn if not x.startswith(".")]
+            for f in sorted(fn):
+                if os.path.splitext(f)[1].lower() not in EXT or f.startswith("."):
+                    continue
+                p = os.path.join(dp, f)
+                try:
+                    st = os.stat(p)
+                except OSError:
+                    continue
+                o = old.get(p)
+                if o and o.get("mtime") == int(st.st_mtime):
+                    tracks.append(o)
+                    continue
+                j = probe(p)
+                fmt = j.get("format", {})
+                tags = fmt.get("tags", {})
+                for s_ in j.get("streams", []):
+                    if s_.get("codec_type") == "audio":
+                        tags = {**s_.get("tags", {}), **tags}
+                title = tag(tags, "title") or os.path.splitext(f)[0]
+                artist = tag(tags, "artist", "album_artist") or "Bilinmeyen sanatçı"
+                album = tag(tags, "album") or "Bilinmeyen albüm"
+                key = hashlib.md5((artist + "|" + album).encode()).hexdigest()[:16]
+                cover = extract_cover(p, dp, j.get("streams", []), key)
+                tracks.append({"path": p, "title": title, "artist": artist, "album": album,
+                               "albumArtist": tag(tags, "album_artist") or artist,
+                               "track": num(tag(tags, "track")), "disc": num(tag(tags, "disc")),
+                               "year": tag(tags, "date", "year")[:4],
+                               "duration": float(fmt.get("duration") or 0), "cover": cover,
+                               "mtime": int(st.st_mtime)})
+    os.makedirs(CACHE, exist_ok=True)
+    json.dump(tracks, open(LIB, "w"), ensure_ascii=False)
+    out({"count": len(tracks)})
+
+
+def load():
+    try:
+        tracks = json.load(open(LIB))
+    except (OSError, ValueError):
+        tracks = []
+    try:
+        pls = json.load(open(PLS))
+    except (OSError, ValueError):
+        pls = []
+    tracks = [t for t in tracks if os.path.exists(t["path"])]
+    out({"tracks": tracks, "playlists": pls})
+
+
+def main():
+    a = sys.argv[1:]
+    if not a:
+        return
+    c = a[0]
+    if c == "watch":
+        watch()
+    elif c == "ctl":
+        s = ensure()
+        if s:
+            out(rpc(s, json.loads(a[1])))
+    elif c == "play":
+        play(json.loads(a[1]), int(a[2]))
+    elif c == "scan":
+        scan(a[1:])
+    elif c == "load":
+        load()
+    elif c == "playlists":
+        os.makedirs(CONF, exist_ok=True)
+        json.dump(json.loads(a[1]), open(PLS, "w"), ensure_ascii=False)
+
+
+if __name__ == "__main__":
+    main()

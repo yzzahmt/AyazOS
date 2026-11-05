@@ -538,7 +538,7 @@ Window {
                     Text { text: "Yeni bir güncelleme olduğunda burada görünür."; color: Theme.textDim; font { family: Theme.font; pixelSize: 13 } anchors.horizontalCenter: parent.horizontalCenter }
                 }
                 Busy { visible: win.loading && !win.updBusy; anchors.centerIn: parent }
-                Toast { anchors { horizontalCenter: parent.horizontalCenter; bottom: parent.bottom; bottomMargin: 24 }; visible: win.notice !== "" && win.page === "updates" }
+                Toast { anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; anchors.bottomMargin: 24; visible: win.notice !== "" && win.page === "updates" }
             }
 
             // ===== Ayrıntı =====

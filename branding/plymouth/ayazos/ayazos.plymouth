@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=AyazOS
+Description=AyazOS boot animation: a rotating purple black hole and a welcome message
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/ayazos
+ScriptFile=/usr/share/plymouth/themes/ayazos/ayazos.script

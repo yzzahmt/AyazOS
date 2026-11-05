@@ -29,7 +29,9 @@ PanelWindow {
     }
 
     // Logo düğmesinin ekrandaki konumu: başlat menüsü buradan açılır.
-    readonly property point startOrigin: logo.mapToItem(null, logo.width / 2, logo.height / 2)
+    // (Dock penceresi üst çubuğun altından başlar: 44 px.)
+    readonly property point startOrigin: Qt.point((screen ? screen.width : 1920) - 32 - panel.width / 2,
+                                                  44 + panel.y + column.y + logo.y + logo.height / 2)
 
     Glass {
         id: panel

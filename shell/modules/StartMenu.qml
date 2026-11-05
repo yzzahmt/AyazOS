@@ -64,22 +64,33 @@ PanelWindow {
         id: panel
         readonly property real openX: win.width - 140 - win.panelW
         readonly property real openY: (win.height - win.panelH) / 2
-        x: win.open ? openX : win.ox - 30
-        y: win.open ? openY : win.oy - 30
-        width: win.open ? win.panelW : 60
-        height: win.open ? win.panelH : 60
-        radius: win.open ? Theme.rWindow + 6 : 16
+        x: openX + (win.open ? 0 : 56)
+        y: openY
+        width: win.panelW
+        height: win.panelH
+        radius: Theme.rWindow + 6
         opacity: win.open ? 1 : 0
         clip: true
         color: Qt.rgba(14 / 255, 19 / 255, 28 / 255, 0.86)
         border.color: Theme.strokeHi
 
-        Behavior on x { NumberAnimation { duration: Theme.dSlow; easing.type: Easing.OutQuint } }
-        Behavior on y { NumberAnimation { duration: Theme.dSlow; easing.type: Easing.OutQuint } }
-        Behavior on width { NumberAnimation { duration: Theme.dSlow; easing.type: Easing.OutQuint } }
-        Behavior on height { NumberAnimation { duration: Theme.dSlow + 60; easing.type: Easing.OutQuint } }
-        Behavior on radius { NumberAnimation { duration: Theme.dSlow } }
-        Behavior on opacity { NumberAnimation { duration: win.open ? 120 : Theme.dSlow; easing.type: Easing.OutCubic } }
+        Behavior on x { NumberAnimation { duration: Theme.dSlow + 80; easing.type: Easing.OutQuint } }
+        Behavior on opacity { NumberAnimation { duration: win.open ? 90 : Theme.dSlow; easing.type: Easing.OutCubic } }
+
+        // Su damlası açılışı (shaders/reveal.frag): yalnızca animasyon sırasında katman açılır.
+        property real reveal: win.open ? 1 : 0
+        Behavior on reveal { NumberAnimation { duration: 620; easing.type: Easing.OutCubic } }
+        property real t: 0
+        NumberAnimation on t { from: 0; to: 1000; duration: 1000000; loops: Animation.Infinite; running: panel.reveal > 0 && panel.reveal < 1 }
+        layer.enabled: reveal < 1
+        layer.effect: ShaderEffect {
+            property real progress: panel.reveal
+            property real time: panel.t
+            property point origin: Qt.point((win.ox - panel.x) / panel.width, (win.oy - panel.y) / panel.height)
+            property point aspect: Qt.point(panel.width / panel.height, 1)
+            property color rim: Theme.accent
+            fragmentShader: Qt.resolvedUrl("../shaders/reveal.frag.qsb")
+        }
 
         MouseArea { anchors.fill: parent } // arkadaki kapatma alanına tıklama geçmesin
 
@@ -99,8 +110,6 @@ PanelWindow {
             id: content
             width: win.panelW
             height: win.panelH
-            opacity: win.open ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: win.open ? 320 : 100 } }
             spacing: 18
 
             // Arama

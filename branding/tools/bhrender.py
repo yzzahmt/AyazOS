@@ -76,3 +76,39 @@ def render_bh(w, h, rs_px, cx, cy, roll=0.0, elev=7.0, rot=0.0, r_in=3.0, r_out=
         samp[hor_all.reshape(h, w)] = 0
         img = img + samp
     return img, hor_all.reshape(h, w)
+
+
+# ---------------------------------------------------------------- cached geometry (animation)
+def bh_geometry(w, h, rs_px, cx, cy, roll=0.0, elev=7.0, r_in=3.0, r_out=11.0, tile=600000):
+    X, Y = np.meshgrid(np.arange(w, dtype=np.float32) + .5 - cx, np.arange(h, dtype=np.float32) + .5 - cy)
+    c, s = math.cos(roll), math.sin(roll)
+    bxf = ((X * c - Y * s) / rs_px).ravel().astype(np.float64)
+    byf = (-(X * s + Y * c) / rs_px).ravel().astype(np.float64)
+    n = bxf.size
+    geo = dict(w=w, h=h, r_in=r_in, r_out=r_out, elev=elev, hits=[], ring=np.zeros(n, np.float32), hor=np.zeros(n, bool))
+    parts = []
+    for t0 in range(0, n, tile):
+        sl = slice(t0, min(t0 + tile, n))
+        hits, sky, hor = trace(bxf[sl], byf[sl], elev, r_in, r_out)
+        delta = sky - math.pi
+        geo["ring"][sl] = np.where(hor, 0.0, np.clip((delta - 0.7 * math.pi) / (1.8 * math.pi), 0, 1) ** 2.0)
+        geo["hor"][sl] = hor
+        parts.append(hits)
+    for k in range(3):
+        geo["hits"].append(dict(
+            r=np.concatenate([p[k]["r"] for p in parts]), phi=np.concatenate([p[k]["phi"] for p in parts]),
+            mask=np.concatenate([p[k]["mask"] for p in parts])))
+    return geo
+
+def bh_shade(geo, rot, detail=1.0, ring_gain=1.0):
+    n = geo["w"] * geo["h"]
+    col = np.zeros((n, 3), np.float32)
+    e_rad = math.radians(geo["elev"])
+    for k, hk in enumerate(geo["hits"]):
+        m = hk["mask"]
+        if not m.any(): continue
+        inten, tmp, boost = disk_emit(hk["r"][m], hk["phi"][m], rot, geo["r_in"], geo["r_out"], e_rad, 0, detail)
+        fall = (0.82, 0.55, 0.38)[k]
+        col[m] += ramp(np.clip(tmp, 0, 1), PALETTE) * (inten * boost * fall)[:, None]
+    col += (geo["ring"] * 0.9 * ring_gain)[:, None] * np.array([0.78, 0.78, 1.0], np.float32)
+    return col.reshape(geo["h"], geo["w"], 3)
