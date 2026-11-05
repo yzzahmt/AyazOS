@@ -3,6 +3,7 @@
 # Kullanım: push-pages.sh <reprepro çıktı dizini>
 # Pages ayarı bir kez açılmalı: Settings > Pages > Branch: gh-pages / root
 set -euo pipefail
+export TMPDIR="$(cd "$(dirname "$0")/.." && pwd)/.tc/tmp/"  # geçici dosyalar HDD'de
 SRC=$(realpath "$1")
 HERE=$(cd "$(dirname "$0")/.." && pwd)
 W=$(mktemp -d)
