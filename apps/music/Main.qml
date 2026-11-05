@@ -676,12 +676,12 @@ Window {
                 anchors { left: parent.left; right: parent.right; top: parent.top; leftMargin: 34; rightMargin: 32; topMargin: 32 }
                 spacing: 6
                 Text {
-                    text: win.query ? "Arama" : ({ songs: "Şarkılar", albums: "Albümler", artists: "Sanatçılar", playlists: "Çalma listeleri" })[win.view]
+                    text: win.query ? "Arama" : ({ songs: "Şarkılar", albums: "Albümler", artists: "Sanatçılar", playlists: "Çalma listeleri" })[win.view] || ""
                     color: Theme.text; font { family: Theme.font; pixelSize: 28 }
                 }
                 Text {
                     text: win.query ? "“" + win.query + "” için " + win.shownTracks.length + " şarkı" :
-                          ({ songs: win.tracks.length + " şarkı", albums: win.albums.length + " albüm", artists: win.artists.length + " sanatçı", playlists: win.playlists.length + " liste" })[win.view]
+                          ({ songs: win.tracks.length + " şarkı", albums: win.albums.length + " albüm", artists: win.artists.length + " sanatçı", playlists: win.playlists.length + " liste" })[win.view] || ""
                     color: Theme.textDim; font { family: Theme.font; pixelSize: 13 }
                 }
             }

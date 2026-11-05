@@ -1,0 +1,17 @@
+{
+  "policies": {
+    "DisableTelemetry": true,
+    "DisableFirefoxStudies": true,
+    "DontCheckDefaultBrowser": true,
+    "OverrideFirstRunPage": "",
+    "UserMessaging": { "ExtensionRecommendations": false, "FeatureRecommendations": false, "SkipOnboarding": true },
+    "Preferences": {
+      "gfx.webrender.all": { "Value": true, "Status": "default" },
+      "media.ffmpeg.vaapi.enabled": { "Value": true, "Status": "default" },
+      "media.hardware-video-decoding.force-enabled": { "Value": true, "Status": "default" },
+      "widget.use-xdg-desktop-portal.file-picker": { "Value": 1, "Status": "default" },
+      "browser.tabs.inTitlebar": { "Value": 1, "Status": "default" },
+      "intl.locale.requested": { "Value": "tr,en-US", "Status": "default" }
+    }
+  }
+}
