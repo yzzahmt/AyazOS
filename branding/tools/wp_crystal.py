@@ -13,7 +13,7 @@ canvas *= (0.92 + 0.16 * (fbm(X * 3, Y * 3, 4, seed=3)[..., None] * 0.5 + 0.5))
 
 # --- shard generation
 main = math.radians(-32)
-K = 64
+K = 48
 shards = []
 for i in range(K):
     z = rng.random() ** 0.8
@@ -22,7 +22,7 @@ for i in range(K):
     cx = W / 2 + (t * math.cos(main) - s * math.sin(main)) * H * 1.15 + 0.12 * W
     cy = H / 2 + (t * math.sin(main) + s * math.cos(main)) * H * 1.15
     L = (0.22 + 0.9 * (z ** 1.5) + 0.25 * rng.random()) * H
-    Wd = L * (0.10 + 0.22 * rng.random())
+    Wd = L * (0.22 + 0.30 * rng.random())
     th = main + rng.normal(0, 0.55)
     nv = rng.integers(3, 6)
     ph = np.sort(rng.random(nv) * 2 * math.pi)
@@ -68,9 +68,9 @@ for z, pts, hue in shards:
         sh = (rng.normal(0, 38 * U), rng.normal(0, 38 * U))
         yy = np.clip(gy + sh[1], 0, H - 1).astype(int); xx = np.clip(gx + sh[0], 0, W - 1).astype(int)
         refr = canvas[yy, xx]
-        facet = pal[None, None, :] * (0.25 + 0.95 * lit) * (0.35 + 0.65 * shade[..., None]) * (0.25 + 0.75 * z)
-        col = refr * 1.3 + facet * 0.55
-        a = (m * (0.55 + 0.35 * z))[..., None]
+        facet = pal[None, None, :] * (0.10 + 0.70 * lit ** 1.5) * (0.30 + 0.70 * shade[..., None]) * (0.20 + 0.80 * z)
+        col = refr * 1.05 + facet * 0.50
+        a = (m * (0.62 + 0.30 * z))[..., None]
         if depth_blur > 0.5: a = a  # far shards simply dimmer
         canvas[y0:y1, x0:x1] = canvas[y0:y1, x0:x1] * (1 - a) + col * a
     # edge light on the polygon outline
@@ -85,7 +85,7 @@ for z, pts, hue in shards:
         im = Image.new("L", (x1 - x0, y1 - y0), 0)
         ImageDraw.Draw(im).line([(p0[0] - x0, p0[1] - y0), (p1[0] - x0, p1[1] - y0)], fill=255, width=max(1, int(round(2 * U))))
         lm = ndi.gaussian_filter(np.asarray(im, np.float32) / 255, 0.8 * U + 0.3)
-        edges[y0:y1, x0:x1] += lm[..., None] * np.array([0.55, 0.72, 1.0], np.float32) * (k * 0.9)
+        edges[y0:y1, x0:x1] += lm[..., None] * np.array([0.55, 0.72, 1.0], np.float32) * (k * 1.5)
 
 lin = canvas + edges + blur(edges, 4 * U) * 0.8 + blur(edges, 18 * U) * 0.5
 # a few specular glints + soft haze

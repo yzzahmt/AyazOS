@@ -45,6 +45,7 @@ echo ayazos > $C/etc/hostname
 printf '#!/bin/sh\nexit 101\n' > $C/usr/sbin/policy-rc.d; chmod +x $C/usr/sbin/policy-rc.d
 
 log "temel sistem"
+in_chroot "dpkg --add-architecture i386"
 in_chroot "apt-get update -q >/dev/null && apt-get install -y -q \
   linux-generic linux-firmware casper initramfs-tools systemd-sysv sudo locales tzdata keyboard-configuration console-setup \
   grub-efi-amd64-signed shim-signed grub-pc-bin grub-efi-amd64-bin efibootmgr os-prober \
@@ -76,6 +77,12 @@ G
 # Kurulum aracı ve ayarları
 rm -rf $C/etc/calamares; cp -r "$ROOT/distro/calamares" $C/etc/calamares
 install -Dm644 "$ROOT/distro/calamares/install-ayazos.desktop" $C/usr/share/applications/install-ayazos.desktop
+L=$(ls "$ROOT"/branding/logo/png/*256*.png 2>/dev/null | grep -v tile | head -1)
+[ -n "$L" ] && cp "$L" $C/etc/calamares/branding/ayazos/logo.png
+W=$(ls "$ROOT"/branding/logo/*wordmark*.png "$ROOT"/branding/logo/png/*wordmark*.png 2>/dev/null | head -1)
+[ -n "$W" ] && cp "$W" $C/etc/calamares/branding/ayazos/welcome.png || cp $C/etc/calamares/branding/ayazos/logo.png $C/etc/calamares/branding/ayazos/welcome.png 2>/dev/null || true
+# Canlı oturumda kurulum aracı dock'ta görünsün diye masaüstüne kısayol
+mkdir -p $C/etc/skel/Masaüstü && cp "$ROOT/distro/calamares/install-ayazos.desktop" $C/etc/skel/Masaüstü/ 2>/dev/null || true
 # GRUB görünümü
 mkdir -p $C/etc/default/grub.d
 cat > $C/etc/default/grub.d/ayazos.cfg <<'G'

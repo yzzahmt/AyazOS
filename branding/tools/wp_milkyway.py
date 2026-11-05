@@ -16,14 +16,14 @@ dust = smoothstep(0.35, 0.75, fbm(u * 3.2 + 1, v * 6, 6, seed=9, ridged=True) * 
 dust_lane = np.exp(-((v - 0.03 * np.sin(u * 3)) / (width * 0.20)) ** 2) * (0.55 + 0.45 * clouds)
 light = prof * (0.35 + 0.9 * clouds) * (0.5 + 0.7 * core) + prof2 * 0.7 * fine * core
 light = light * (1 - 0.82 * np.clip(dust_lane + dust * prof * 0.9, 0, 1))
-col = ramp(np.clip(light * 0.5, 0, 1), [(0, (0.0, 0.0, 0.0)), (0.12, (0.04, 0.05, 0.16)), (0.35, (0.18, 0.18, 0.40)), (0.6, (0.50, 0.42, 0.62)), (0.85, (0.88, 0.74, 0.62)), (1, (1.0, 0.9, 0.75))])
+col = ramp(np.clip(light * 0.5, 0, 1), [(0, (0.0, 0.0, 0.0)), (0.12, (0.04, 0.05, 0.16)), (0.35, (0.20, 0.17, 0.32)), (0.6, (0.52, 0.40, 0.48)), (0.85, (0.95, 0.74, 0.52)), (1, (1.0, 0.9, 0.75))])
 # warm core vs blue edges
 warm = smoothstep(0.0, 1.0, prof2 * core)[..., None]
 col = col * (0.75 + 0.55 * warm) * np.array([1.0, 1.0, 1.0], np.float32)
 # magenta/teal airglow wash
 wash = fbm(X * 0.9, Y * 0.9, 3, seed=41) * 0.5 + 0.5
 col += (np.array([0.05, 0.01, 0.07], np.float32) * wash[..., None] + np.array([0.0, 0.025, 0.05], np.float32) * (1 - wash[..., None])) * 0.8
-mw = up(col * 0.85)
+mw = up(col * 0.5)
 # star density follows the band
 st_bg = bg_stars(14000, 5, mag_pow=3.0, bright=1.0)
 rng = np.random.default_rng(88)

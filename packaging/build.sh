@@ -25,7 +25,7 @@ if find "$DEST" -type f \( -name '*.so' -o -perm -u+x \) -exec file {} + 2>/dev/
 else
   SHLIBS=""
 fi
-DEPS=$(grep -v '^#' "$SRC/depends" 2>/dev/null | tr '\n' ',' | sed 's/,$//; s/,,*/,/g')
+DEPS=$(cat "$SRC/depends" "$WORK/extra-depends" 2>/dev/null | grep -v '^#' | grep -v '^$' | sort -u | tr '\n' ',' | sed 's/,$//; s/,,*/,/g')
 ALL=$(echo "$SHLIBS,$DEPS" | sed 's/^,//; s/,$//; s/,/, /g')
 SIZE=$(du -sk "$DEST" | cut -f1)
 sed -e "s/@VERSION@/$VERSION/" -e "s/@ARCH@/$ARCH/" -e "s/@SIZE@/$SIZE/" "$SRC/control" > "$DEST/DEBIAN/control"

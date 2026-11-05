@@ -13,6 +13,25 @@ Singleton {
     property int workspace: 1
     property int workspaceCount: 3
 
+    // Çalışma alanı bilgisi Wayfire IPC'den gelir (tools/ayaz-wf).
+    Process {
+        id: wfWatch
+        running: true
+        command: ["ayaz-wf", "watch"]
+        stdout: SplitParser {
+            onRead: line => {
+                try {
+                    const st = JSON.parse(line);
+                    root.workspace = st.workspace;
+                    root.workspaceCount = st.count;
+                } catch (e) {}
+            }
+        }
+        onExited: wfRetry.start()
+    }
+    Timer { id: wfRetry; interval: 3000; onTriggered: wfWatch.running = true }
+    function switchWorkspace(n) { Quickshell.execDetached(["ayaz-wf", "workspace", String(n)]); }
+
     // Kullanıcı ayarları: ~/.config/ayazos/shell.json (Ayarlar uygulaması yazar).
     readonly property string wallpaper: cfg.wallpaper || "/usr/share/backgrounds/ayazos/default.jpg"
     readonly property string glass: cfg.glass || "high"      // high | balanced | battery
@@ -39,7 +58,7 @@ Singleton {
     readonly property var pinned: [
         { id: "ayaz-files", icon: "folder", name: "Dosyalar" },
         { id: "firefox", icon: "compass", name: "Firefox" },
-        { id: "veloneon-notes", icon: "notebook-pen", name: "Veloneon Notes" },
+        { id: "net.yazify.VeloneonNotes", icon: "notebook-pen", name: "Veloneon Notes" },
         { id: "ayaz-music", icon: "music", name: "Müzik" },
         { id: "ayaz-gallery", icon: "image", name: "Galeri" },
         { id: "ayaz-terminal", icon: "terminal", name: "Terminal" },

@@ -20,4 +20,6 @@ for app in "$ROOT"/apps/*/; do
   [ -f "$app/ayaz-$name.desktop" ] && install -Dm644 "$app/ayaz-$name.desktop" "$DEST/usr/share/applications/ayaz-$name.desktop"
   printf '#!/bin/sh\nexec ayaz-app %s "$@"\n' "$name" > "$DEST/usr/bin/ayaz-$name"; chmod 755 "$DEST/usr/bin/ayaz-$name"
 done
+cat "$ROOT"/apps/*/DEPENDS 2>/dev/null >> "$WORK/extra-depends" || true
 find "$DEST" -name '.DS_Store' -delete
+find "$DEST" -name DEPENDS -delete

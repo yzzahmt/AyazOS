@@ -36,14 +36,14 @@ def tail(n, length, w0, w1, curve, col, amp, fall, sig):
     a = amp * np.exp(-s * fall) * (0.4 + 0.6 * rng.random(n))
     return splat((H, W), pos[:, 0], pos[:, 1], np.outer(a, col).astype(np.float32), np.full(n, sig * U))
 Lg = 1.15 * W
-ion = tail(60000, Lg, 4, 34, -0.02 * Lg * 0.0, np.array([0.30, 0.62, 1.0]), 0.09, 3.2, 1.0)
-dust = tail(80000, Lg * 0.82, 14, 120, 0.45, np.array([1.0, 0.82, 0.62]), 0.05, 3.0, 1.8)
-dust2 = tail(40000, Lg * 0.6, 8, 70, 0.22, np.array([0.9, 0.7, 0.9]), 0.05, 2.6, 1.4)
+ion = tail(60000, Lg, 4, 34, -0.02 * Lg * 0.0, np.array([0.30, 0.62, 1.0]), 0.20, 2.8, 1.0)
+dust = tail(80000, Lg * 0.82, 14, 120, 0.45, np.array([1.0, 0.80, 0.55]), 0.12, 2.6, 1.8)
+dust2 = tail(40000, Lg * 0.6, 8, 70, 0.22, np.array([0.9, 0.7, 0.95]), 0.10, 2.4, 1.4)
 lin += ion + dust + dust2 + blur(ion, 14 * U) * 1.5 + blur(dust, 30 * U) * 1.2
 # coma + nucleus
 Xp, Yp = np.meshgrid(np.arange(W, dtype=np.float32), np.arange(H, dtype=np.float32))
 r = np.hypot(Xp - hx, Yp - hy) / U
-coma = (np.exp(-(r / 5.5) ** 2) * 10 + np.exp(-(r / 24) ** 2) * 1.8 + np.exp(-r / 80) * 0.22)
+coma = (np.exp(-(r / 7) ** 2) * 14 + np.exp(-(r / 28) ** 2) * 3.0 + np.exp(-r / 90) * 0.45)
 lin += coma[..., None] * np.array([0.88, 0.98, 1.0], np.float32)
 lin += (np.exp(-r / 260) * 0.05)[..., None] * np.array([0.3, 0.7, 0.9], np.float32)
 lin = bloom(lin, 0.45, thresh=0.06)

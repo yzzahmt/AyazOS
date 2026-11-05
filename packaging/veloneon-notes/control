@@ -1,0 +1,8 @@
+Package: veloneon-notes
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: editors
+Priority: optional
+Description: Veloneon Notes - fast notes app (AyazOS default notes)

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Ayarlar
+Name[en]=Settings
+Comment=Sistemini kişiselleştir ve yapılandır
+Exec=ayaz-settings
+Icon=preferences-system
+Terminal=false
+Categories=Settings;
+Keywords=ayarlar;settings;ekran;ses;ağ;bluetooth;güç;klavye;
+StartupWMClass=ayaz-settings

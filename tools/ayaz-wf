@@ -1,0 +1,76 @@
+#!/usr/bin/env python3
+"""Wayfire IPC yardımcısı (yalnızca standart kütüphane).
+
+  ayaz-wf watch            çalışma alanı değişimlerini JSON satırları olarak yazar
+  ayaz-wf workspace N      N. çalışma alanına geçer (1'den başlar, yatay ızgara)
+"""
+import json, os, socket, struct, sys
+
+
+def connect():
+    path = os.environ.get("WAYFIRE_SOCKET")
+    if not path:
+        rd = os.environ.get("XDG_RUNTIME_DIR", "/tmp")
+        cands = [os.path.join(d, f) for d in (rd, "/tmp") if os.path.isdir(d)
+                 for f in os.listdir(d) if f.startswith("wayfire-") and f.endswith(".socket")]
+        path = cands[0] if cands else None
+    s = socket.socket(socket.AF_UNIX)
+    s.connect(path)
+    return s
+
+
+def send(s, method, data=None):
+    msg = json.dumps({"method": method, "data": data or {}}).encode()
+    s.sendall(struct.pack("<I", len(msg)) + msg)
+
+
+def recv(s):
+    hdr = b""
+    while len(hdr) < 4:
+        c = s.recv(4 - len(hdr))
+        if not c:
+            raise EOFError
+        hdr += c
+    n = struct.unpack("<I", hdr)[0]
+    buf = b""
+    while len(buf) < n:
+        c = s.recv(n - len(buf))
+        if not c:
+            raise EOFError
+        buf += c
+    return json.loads(buf)
+
+
+def state(s):
+    send(s, "window-rules/list-outputs")
+    outs = recv(s)
+    o = outs[0] if isinstance(outs, list) and outs else {}
+    ws = o.get("workspace", {})
+    gw = max(1, ws.get("grid_width", 1))
+    return {"workspace": ws.get("y", 0) * gw + ws.get("x", 0) + 1,
+            "count": gw * max(1, ws.get("grid_height", 1)), "output": o.get("id")}
+
+
+def main():
+    cmd = sys.argv[1] if len(sys.argv) > 1 else "watch"
+    s = connect()
+    if cmd == "workspace":
+        st = state(s)
+        n = int(sys.argv[2]) - 1
+        send(s, "vswitch/set-workspace", {"x": n % max(1, st["count"]), "y": 0, "output-id": st["output"]})
+        print(json.dumps(recv(s)))
+        return
+    print(json.dumps(state(s)), flush=True)
+    ev = connect()
+    send(ev, "window-rules/events/watch", {"events": ["wset-workspace-changed", "output-gain-focus"]})
+    recv(ev)
+    while True:
+        recv(ev)
+        print(json.dumps(state(s)), flush=True)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (EOFError, OSError, KeyboardInterrupt):
+        sys.exit(0)

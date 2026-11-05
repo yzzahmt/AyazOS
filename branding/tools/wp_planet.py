@@ -49,7 +49,7 @@ isg = (alt < 0)[..., None]
 lin = np.where(isg, ground + lights, sky + rim)
 lin = lin + rim * isg * 0.6                       # rim spills slightly onto the limb edge
 # stars above the horizon
-st = bg_stars(5200, 55, mag_pow=3.1, bright=1.0)
+st = bg_stars(4200, 55, mag_pow=3.1, bright=1.0)
 ext = smoothstep(0, 0.35 * H, -(Y - (cy - Rp - 0)) + 0)  # unused guard
 horizon_y = cy - np.sqrt(np.maximum(Rp ** 2 - (X - cx) ** 2, 0))
 above = np.clip((horizon_y - Y) / (0.45 * H), 0, 1) ** 0.7
@@ -66,5 +66,6 @@ streak = np.exp(-np.abs(Y - sy) / (2.2 * U)) * np.exp(-np.abs(X - sx) / (700 * U
 streak2 = np.exp(-np.abs(Y - sy) / (7 * U)) * np.exp(-np.abs(X - sx) / (380 * U)) * 0.12
 sun_l += (streak + streak2)[..., None] * np.array([0.8, 0.88, 1.0], np.float32) * (alt > -2 * U)[..., None]
 lin = lin + sun_l
+lin = spikes(lin, [sx], [sy], np.array([[1.0, 0.92, 0.8]], np.float32) * 1.2, [420 * U])
 lin = bloom(lin, 0.5, thresh=0.1)
 finish(lin, "wallpapers/planet-dawn.jpg", exposure=1.25, grain=0.010, vig=0.35)

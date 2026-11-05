@@ -137,6 +137,10 @@ def cmd_details(aid, pkg="", fid=""):
          "apt_available": False, "flatpak_available": HAS_FLATPAK and bool(fid)}
     if pkg:
         txt = run(["appstreamcli", "get", aid])
+        if not txt.strip():
+            for r in parse_search(run(["appstreamcli", "search", pkg])):
+                if r.get("package") == pkg:
+                    txt = run(["appstreamcli", "get", r["id"]]); break
         desc = []; grab = False
         for ln in txt.splitlines():
             if ln.startswith("Description:"): grab = True; continue

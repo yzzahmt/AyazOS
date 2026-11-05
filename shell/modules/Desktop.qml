@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Services.Mpris
+import Quickshell.Io
 import "../services"
 import "../components"
 
@@ -49,6 +50,42 @@ PanelWindow {
             text: Shell.focusMode ? "Odaktasın." : "Kendine alan aç."
             color: Theme.text
             font { family: Theme.font; pixelSize: 40; weight: Font.Normal }
+        }
+    }
+
+    // Canlı oturumda (kurulum ortamı) "AyazOS'u Kur" kartı
+    property bool live: false
+    Process {
+        running: true
+        command: ["cat", "/proc/cmdline"]
+        stdout: StdioCollector { onStreamFinished: desk.live = text.indexOf("boot=casper") >= 0 }
+    }
+    Glass {
+        visible: desk.live
+        x: 92; y: 230
+        width: 360; height: 128
+        radius: 20
+        RowLayout {
+            anchors { fill: parent; margins: 20 }
+            spacing: 18
+            Image {
+                Layout.preferredWidth: 56; Layout.preferredHeight: 56
+                sourceSize: Qt.size(112, 112)
+                source: Qt.resolvedUrl("../assets/ayazos-mark.svg")
+            }
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 4
+                Text { text: "AyazOS'u kur"; color: Theme.text; font { family: Theme.font; pixelSize: 18; weight: Font.DemiBold } }
+                Text { text: "Birkaç adımda bilgisayarına kur."; color: Theme.textDim; font { family: Theme.font; pixelSize: 12 } }
+                Rectangle {
+                    Layout.topMargin: 6
+                    width: 112; height: 34; radius: 10
+                    color: Theme.accent
+                    Text { anchors.centerIn: parent; text: "Kurulumu başlat"; color: Theme.accentInk; font { family: Theme.font; pixelSize: 12; weight: Font.DemiBold } }
+                    MouseArea { anchors.fill: parent; onClicked: Quickshell.execDetached(["sh", "-c", "sudo -E calamares -d >/tmp/calamares.log 2>&1"]) }
+                }
+            }
         }
     }
 
