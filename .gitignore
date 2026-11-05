@@ -1,0 +1,9 @@
+.tc/
+vm/
+build/
+*.iso
+*.qcow2
+*.img
+.DS_Store
+PROGRESS.md
+.notes/
