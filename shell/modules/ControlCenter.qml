@@ -108,10 +108,10 @@ PanelWindow {
                             Behavior on color { ColorAnimation { duration: Theme.dFast } }
                             Row {
                                 anchors.centerIn: parent; spacing: 6
-                                Icon { name: modelData.icon; size: 14; color: cc.profile === modelData.id ? Theme.onAccent : Theme.textDim; anchors.verticalCenter: parent.verticalCenter }
+                                Icon { name: modelData.icon; size: 14; color: cc.profile === modelData.id ? Theme.accentInk : Theme.textDim; anchors.verticalCenter: parent.verticalCenter }
                                 Text {
                                     text: modelData.label
-                                    color: cc.profile === modelData.id ? Theme.onAccent : Theme.text
+                                    color: cc.profile === modelData.id ? Theme.accentInk : Theme.text
                                     font { family: Theme.font; pixelSize: 12; weight: Font.Medium }
                                 }
                             }
@@ -145,7 +145,7 @@ PanelWindow {
             Rectangle {
                 width: 34; height: 34; radius: 17
                 color: t.on ? Theme.accent : Qt.rgba(1, 1, 1, 0.08)
-                Icon { anchors.centerIn: parent; name: t.icon; size: 16; color: t.on ? Theme.onAccent : Theme.text }
+                Icon { anchors.centerIn: parent; name: t.icon; size: 16; color: t.on ? Theme.accentInk : Theme.text }
             }
             Column {
                 Layout.fillWidth: true
@@ -183,7 +183,7 @@ PanelWindow {
                 anchors.fill: parent
                 function upd(m) { s.moved(Math.max(0, Math.min(1, m.x / width))); }
                 onPressed: m => upd(m)
-                onPositionChanged: m => if (pressed) upd(m)
+                onPositionChanged: m => { if (pressed) upd(m); }
             }
         }
     }

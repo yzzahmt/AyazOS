@@ -124,7 +124,7 @@ Scope {
                         Text {
                             anchors.centerIn: parent
                             text: (Quickshell.env("USER") ?? "?").charAt(0).toUpperCase()
-                            color: Theme.onAccent
+                            color: Theme.accentInk
                             font { family: Theme.font; pixelSize: 34; weight: Font.DemiBold }
                         }
                     }
@@ -183,7 +183,7 @@ Scope {
                                 width: 36; height: 36; radius: 18
                                 color: input.text ? Theme.accent : Qt.rgba(1, 1, 1, 0.08)
                                 Behavior on color { ColorAnimation { duration: Theme.dFast } }
-                                Icon { anchors.centerIn: parent; name: "chevron-right"; size: 18; color: input.text ? Theme.onAccent : Theme.textDim }
+                                Icon { anchors.centerIn: parent; name: "chevron-right"; size: 18; color: input.text ? Theme.accentInk : Theme.textDim }
                                 MouseArea { anchors.fill: parent; onClicked: input.accepted() }
                             }
                         }

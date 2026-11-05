@@ -118,7 +118,7 @@ PanelWindow {
                 Layout.preferredWidth: 46; Layout.preferredHeight: 46
                 radius: 23
                 color: Theme.accent
-                Icon { anchors.centerIn: parent; size: 20; color: Theme.onAccent; name: desk.player?.isPlaying ? "pause" : "play" }
+                Icon { anchors.centerIn: parent; size: 20; color: Theme.accentInk; name: desk.player?.isPlaying ? "pause" : "play" }
                 MouseArea { anchors.fill: parent; onClicked: desk.player?.togglePlaying() }
             }
             IconButton { icon: "skip-forward"; onClicked: desk.player?.next() }

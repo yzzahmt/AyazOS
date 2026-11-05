@@ -15,7 +15,7 @@ QtObject {
     readonly property color textDim: "#8A94A6"
     readonly property color textFaint: "#5E6879"
     readonly property color accent: "#A9C1F2"
-    readonly property color onAccent: "#0E1626"
+    readonly property color accentInk: "#0E1626"
     readonly property color violet: "#8B5CF6"
     readonly property color danger: "#F2777A"
 

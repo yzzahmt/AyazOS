@@ -236,7 +236,7 @@ PanelWindow {
                         Text {
                             anchors.centerIn: parent
                             text: (Quickshell.env("USER") ?? "?").charAt(0).toUpperCase()
-                            color: Theme.onAccent
+                            color: Theme.accentInk
                             font { family: Theme.font; pixelSize: 15; weight: Font.DemiBold }
                         }
                     }

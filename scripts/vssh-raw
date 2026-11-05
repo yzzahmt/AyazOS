@@ -1,0 +1,12 @@
+#!/bin/bash
+# rsync için ham ssh sarmalayıcı: seçenekleri ve host argümanını atar, kalanı komut olarak çalıştırır.
+. /Volumes/HDD/Projeler/Projeler/AyazOS/scripts/env.sh
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -l|-o|-p|-i|-F) shift 2;;
+    -*) shift;;
+    *) break;;
+  esac
+done
+shift # host
+exec ssh -F /dev/null -i $HOME/.ssh/id_ed25519 -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new -o LogLevel=ERROR -p 2222 ayaz@127.0.0.1 "$@"

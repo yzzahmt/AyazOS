@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<wayfire>
+	<plugin name="ayaz-effects">
+		<_short>AyazOS Effects</_short>
+		<_long>Dock minimize and window open effects for AyazOS.</_long>
+		<category>Effects</category>
+		<option name="dock_duration" type="animation">
+			<_short>Dock minimize duration</_short>
+			<default>380ms sigmoid</default>
+		</option>
+		<option name="rise_duration" type="animation">
+			<_short>Open duration</_short>
+			<default>240ms circle</default>
+		</option>
+		<option name="dock_margin" type="int">
+			<_short>Distance of the dock center from the right edge</_short>
+			<default>72</default>
+		</option>
+	</plugin>
+</wayfire>
