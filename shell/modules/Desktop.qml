@@ -95,7 +95,7 @@ PanelWindow {
     Glass {
         id: media
         visible: opacity > 0
-        opacity: desk.player ? 1 : 0
+        opacity: desk.player && desk.player.trackTitle ? 1 : 0
         Behavior on opacity { NumberAnimation { duration: Theme.dNormal } }
         x: 88
         anchors { bottom: parent.bottom; bottomMargin: 56 }
