@@ -79,22 +79,36 @@ Singleton {
     property string weatherIcon: "cloud"
     Process {
         id: weatherQuery
-        command: ["curl", "-s", "--max-time", "8", "https://tr.wttr.in/?format=%t|%C|%l|%x"]
+        command: ["curl", "-s", "--max-time", "10", "https://wttr.in/?format=j1&lang=tr"]
         stdout: StdioCollector {
             onStreamFinished: {
-                const p = text.trim().split("|");
-                if (p.length < 4 || text.indexOf("<") >= 0) return;
-                root.weatherTemp = p[0].replace("+", "");
-                root.weatherDesc = p[1];
-                root.weatherPlace = p[2].split(",")[0];
-                const sym = p[3];
-                root.weatherIcon = sym.indexOf("!") >= 0 ? "cloud-lightning"
-                    : sym.indexOf("*") >= 0 ? "cloud-snow"
-                    : (sym.indexOf("/") >= 0 || sym.indexOf(".") >= 0) ? "cloud-rain"
-                    : sym.indexOf("=") >= 0 ? "cloud-fog"
-                    : sym === "o" ? "sun" : sym === "m" ? "cloud-sun" : "cloud";
+                try {
+                    const j = JSON.parse(text);
+                    const c = j.current_condition[0];
+                    const code = parseInt(c.weatherCode);
+                    root.weatherTemp = c.temp_C + "°C";
+                    root.weatherDesc = root.weatherText(code);
+                    root.weatherPlace = j.nearest_area?.[0]?.areaName?.[0]?.value ?? "";
+                    const thunder = [200, 386, 389, 392, 395], fog = [143, 248, 260];
+                    const snow = [179, 182, 185, 227, 230, 317, 320, 323, 326, 329, 332, 335, 338, 350, 362, 365, 368, 371, 374, 377];
+                    root.weatherIcon = code === 113 ? "sun" : code === 116 ? "cloud-sun" : (code === 119 || code === 122) ? "cloud"
+                        : thunder.includes(code) ? "cloud-lightning" : fog.includes(code) ? "cloud-fog"
+                        : snow.includes(code) ? "cloud-snow" : "cloud-rain";
+                } catch (e) {}
             }
         }
+    }
+    function weatherText(code) {
+        if (code === 113) return "Açık";
+        if (code === 116) return "Parçalı bulutlu";
+        if (code === 119) return "Bulutlu";
+        if (code === 122) return "Kapalı";
+        if ([143, 248, 260].includes(code)) return "Sisli";
+        if ([200, 386, 389, 392, 395].includes(code)) return "Gök gürültülü";
+        if ([179, 227, 230, 323, 326, 329, 332, 335, 338, 368, 371].includes(code)) return "Karlı";
+        if ([182, 185, 281, 284, 311, 314, 317, 320, 350, 362, 365, 374, 377].includes(code)) return "Karla karışık yağmur";
+        if ([176, 263, 266, 293, 296, 353].includes(code)) return "Hafif yağmurlu";
+        return "Yağmurlu";
     }
     Timer { interval: 30 * 60 * 1000; running: true; repeat: true; triggeredOnStart: true; onTriggered: weatherQuery.running = true }
 
