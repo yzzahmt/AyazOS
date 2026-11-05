@@ -15,7 +15,7 @@ export DEST ROOT VERSION SRC WORK
 bash "$SRC/stage.sh"
 
 ARCH=all
-if find "$DEST" -type f \( -name '*.so' -o -perm -u+x \) -exec file {} + 2>/dev/null | grep -q ELF; then
+if find "$DEST" -type f \( -name '*.so' -o -perm -u+x \) -exec file {} + 2>/dev/null | grep ELF >/dev/null; then
   ARCH=$(dpkg --print-architecture)
   # Paylaşımlı kütüphane bağımlılıklarını hesapla
   mkdir -p "$WORK/debian"; : > "$WORK/debian/control"
