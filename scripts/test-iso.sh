@@ -8,10 +8,16 @@
 #   test-iso.sh stop
 . /Volumes/HDD/Projeler/Projeler/AyazOS/scripts/env.sh
 V=$AYAZ_ROOT/vm; MON=$V/x86-mon.sock
-mon() { python3 - "$MON" "$1" <<'PY'
-import socket, sys, time
-s = socket.socket(socket.AF_UNIX); s.connect(sys.argv[1]); time.sleep(0.2); s.recv(4096)
-s.send((sys.argv[2] + "\n").encode()); time.sleep(0.8); print(s.recv(65536).decode(errors="ignore").strip().splitlines()[-1:])
+mon() { python3 - "$V/x86-qmp.sock" "$1" <<'PY'
+import json, socket, sys, time
+s = socket.socket(socket.AF_UNIX); s.connect(sys.argv[1]); f = s.makefile("rw")
+f.readline()
+f.write(json.dumps({"execute": "qmp_capabilities"}) + "\n"); f.flush(); f.readline()
+f.write(json.dumps({"execute": "human-monitor-command", "arguments": {"command-line": sys.argv[2]}}) + "\n"); f.flush()
+while True:
+    r = json.loads(f.readline())
+    if "return" in r or "error" in r:
+        print(r.get("return", r.get("error"))); break
 PY
 }
 start() {
@@ -25,7 +31,7 @@ start() {
     -device virtio-vga -display none -vnc 127.0.0.1:2 \
     -device virtio-net-pci,netdev=n0 -netdev user,id=n0,hostfwd=tcp:127.0.0.1:2223-:22 \
     -device qemu-xhci -device usb-kbd -device usb-tablet \
-    -monitor unix:$MON,server,nowait -serial file:$V/x86-serial.log \
+    -qmp unix:$V/x86-qmp.sock,server,nowait -serial file:$V/x86-serial.log \
     -daemonize -pidfile $V/x86.pid
 }
 case "$1" in
