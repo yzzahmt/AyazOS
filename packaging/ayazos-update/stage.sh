@@ -1,0 +1,11 @@
+set -e
+U="$ROOT/repo"
+install -Dm644 "$U/ayazos-archive-keyring.gpg" "$DEST/usr/share/keyrings/ayazos-archive-keyring.gpg"
+install -Dm644 "$U/ayazos.sources" "$DEST/etc/apt/sources.list.d/ayazos.sources"
+install -Dm644 "$U/mozilla.sources" "$DEST/etc/apt/sources.list.d/mozilla.sources"
+install -Dm644 "$U/mozilla-keyring.asc" "$DEST/usr/share/keyrings/packages.mozilla.org.asc"
+install -Dm644 "$U/apt-preferences" "$DEST/etc/apt/preferences.d/ayazos"
+install -Dm644 "$U/50ayazos-unattended" "$DEST/etc/apt/apt.conf.d/50ayazos-unattended"
+install -Dm644 "$U/20ayazos-auto" "$DEST/etc/apt/apt.conf.d/20ayazos-auto"
+install -Dm755 "$U/ayaz-update" "$DEST/usr/bin/ayaz-update"
+printf '/etc/apt/sources.list.d/ayazos.sources\n/etc/apt/sources.list.d/mozilla.sources\n/etc/apt/preferences.d/ayazos\n/etc/apt/apt.conf.d/50ayazos-unattended\n/etc/apt/apt.conf.d/20ayazos-auto\n' > "$DEST/DEBIAN/conffiles"

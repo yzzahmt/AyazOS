@@ -1,0 +1,9 @@
+Package: ayazos-shell
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: x11
+Priority: optional
+Description: AyazOS desktop shell
+ Top bar, dock, start menu, control center, lock screen and login screen.

@@ -1,0 +1,10 @@
+Package: ayazos-desktop
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: metapackages
+Priority: optional
+Description: AyazOS desktop (metapackage)
+ Installs the complete AyazOS desktop: shell, session, effects, branding,
+ update channel, Firefox, gaming and Windows application support.

@@ -1,0 +1,4 @@
+#!/bin/sh
+# Giriş ekranı: küçük bir Wayfire oturumunda Quickshell greeter'ı çalıştırır.
+export XDG_SESSION_TYPE=wayland QT_QPA_PLATFORM=wayland
+exec wayfire -c /etc/ayazos/greeter.ini

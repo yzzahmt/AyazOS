@@ -1,0 +1,10 @@
+Package: ayazos-update
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: admin
+Priority: optional
+Description: AyazOS update channel
+ Signed AyazOS package repository, Mozilla Firefox repository and automatic
+ background security updates.

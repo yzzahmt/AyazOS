@@ -1,0 +1,9 @@
+Package: ayazos-effects
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: x11
+Priority: optional
+Description: AyazOS window effects for Wayfire
+ Dock minimize and window open animations.

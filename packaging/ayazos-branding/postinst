@@ -1,0 +1,17 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+    # Sistem kimliği: Ubuntu'nun dosyaları yerine AyazOS
+    for f in /usr/lib/os-release /etc/lsb-release; do
+        dpkg-divert --package ayazos-branding --add --rename --divert "$f.ubuntu" "$f" >/dev/null 2>&1 || true
+    done
+    cp /usr/share/ayazos/os-release /usr/lib/os-release
+    . /usr/lib/os-release
+    printf 'DISTRIB_ID=AyazOS\nDISTRIB_RELEASE=%s\nDISTRIB_CODENAME=%s\nDISTRIB_DESCRIPTION="%s"\n' "$VERSION_ID" "$VERSION_CODENAME" "$PRETTY_NAME" > /etc/lsb-release
+    if [ -d /usr/share/plymouth/themes/ayazos ] && command -v plymouth-set-default-theme >/dev/null; then
+        plymouth-set-default-theme ayazos >/dev/null 2>&1 || true
+        command -v update-initramfs >/dev/null && update-initramfs -u >/dev/null 2>&1 || true
+    fi
+    gtk-update-icon-cache -q /usr/share/icons/hicolor 2>/dev/null || true
+fi
+exit 0

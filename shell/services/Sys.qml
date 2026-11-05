@@ -77,5 +77,5 @@ Singleton {
     function suspend() { Quickshell.execDetached(["systemctl", "suspend"]); }
     function reboot() { Quickshell.execDetached(["systemctl", "reboot"]); }
     function poweroff() { Quickshell.execDetached(["systemctl", "poweroff"]); }
-    function logout() { Quickshell.execDetached(["wayland-logout"]); }
+    function logout() { Quickshell.execDetached(["sh", "-c", "loginctl terminate-session \"$XDG_SESSION_ID\""]); }
 }

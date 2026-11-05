@@ -1,0 +1,9 @@
+Package: ayazos-session
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: x11
+Priority: optional
+Description: AyazOS Wayland session, login and system tuning
+ Wayfire session, greetd login screen, zram and kernel tuning.

@@ -1,0 +1,17 @@
+#!/bin/sh
+# AyazOS güncelleyici (komut satırı arka ucu). Arayüz: Ayarlar > Güncellemeler.
+#   ayaz-update check   -> güncellenebilir paket sayısı
+#   ayaz-update list    -> paket listesi
+#   ayaz-update apply   -> güncellemeleri kur (pkexec ile yetki ister)
+set -e
+case "${1:-check}" in
+  check) apt-get -s -o Debug::NoLocking=1 dist-upgrade 2>/dev/null | grep -c '^Inst ' || true ;;
+  list)  apt list --upgradable 2>/dev/null | tail -n +2 ;;
+  apply)
+    if [ "$(id -u)" -ne 0 ]; then exec pkexec "$0" apply; fi
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -q
+    apt-get -y -q -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold dist-upgrade
+    flatpak update -y --noninteractive 2>/dev/null || true ;;
+  *) echo "kullanım: ayaz-update check|list|apply" >&2; exit 2 ;;
+esac

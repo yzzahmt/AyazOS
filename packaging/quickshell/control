@@ -1,0 +1,10 @@
+Package: quickshell
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: x11
+Priority: optional
+Homepage: https://quickshell.org
+Description: QtQuick based desktop shell toolkit (AyazOS build)
+ Quickshell built from upstream source for AyazOS.

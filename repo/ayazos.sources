@@ -1,0 +1,5 @@
+Types: deb
+URIs: https://yzzahmt.github.io/AyazOS/apt
+Suites: resolute
+Components: main
+Signed-By: /usr/share/keyrings/ayazos-archive-keyring.gpg

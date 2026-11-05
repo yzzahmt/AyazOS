@@ -1,0 +1,14 @@
+# Firefox Mozilla deposundan gelir (snap değil).
+Package: firefox* 
+Pin: origin packages.mozilla.org
+Pin-Priority: 1000
+
+# Snap hiçbir zaman kurulmaz.
+Package: snapd
+Pin: release a=*
+Pin-Priority: -10
+
+# AyazOS paketleri Ubuntu'daki aynı adlı paketlerin önüne geçer.
+Package: *
+Pin: origin yzzahmt.github.io
+Pin-Priority: 900

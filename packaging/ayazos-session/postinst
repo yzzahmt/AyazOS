@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+if [ "$1" = configure ]; then
+    # greetd: AyazOS giriş ekranı
+    if [ -d /etc/greetd ]; then
+        cp /usr/share/ayazos/greetd-config.toml /etc/greetd/config.toml
+    fi
+    id greeter >/dev/null 2>&1 || adduser --system --group --home /var/lib/greeter --no-create-home greeter >/dev/null 2>&1 || true
+    mkdir -p /var/lib/greeter && chown greeter:greeter /var/lib/greeter
+    for g in video render input; do adduser greeter $g >/dev/null 2>&1 || true; done
+    systemctl enable greetd.service >/dev/null 2>&1 || true
+    systemctl set-default graphical.target >/dev/null 2>&1 || true
+fi
+exit 0

@@ -1,0 +1,12 @@
+PRETTY_NAME="AyazOS 1.0"
+NAME="AyazOS"
+VERSION_ID="1.0"
+VERSION="1.0 (Ayaz)"
+VERSION_CODENAME=resolute
+ID=ayazos
+ID_LIKE="ubuntu debian"
+HOME_URL="https://github.com/yzzahmt/AyazOS"
+SUPPORT_URL="https://github.com/yzzahmt/AyazOS/issues"
+BUG_REPORT_URL="https://github.com/yzzahmt/AyazOS/issues"
+UBUNTU_CODENAME=resolute
+LOGO=ayazos

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=AyazOS
+Comment=AyazOS masaüstü
+Exec=ayazos-session
+Type=Application
+DesktopNames=AyazOS

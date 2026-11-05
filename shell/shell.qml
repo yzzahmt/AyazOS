@@ -20,4 +20,6 @@ ShellRoot {
         }
     }
     LockScreen {}
+    Notifications {}
+    PolkitDialog {}
 }

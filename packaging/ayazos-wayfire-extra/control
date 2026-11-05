@@ -1,0 +1,9 @@
+Package: ayazos-wayfire-extra
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: x11
+Priority: optional
+Description: Extra Wayfire plugins (shatter, water and more) for AyazOS
+ Built from wayfire-plugins-extra v0.10.0.

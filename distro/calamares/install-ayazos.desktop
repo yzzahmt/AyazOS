@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=AyazOS'u Kur
+Name[en]=Install AyazOS
+Comment=AyazOS'u bilgisayarına kur
+Exec=sh -c "sudo -E calamares -d >/tmp/calamares.log 2>&1"
+Icon=ayazos
+Terminal=false
+Categories=System;

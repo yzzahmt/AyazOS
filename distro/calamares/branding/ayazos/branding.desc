@@ -1,0 +1,34 @@
+---
+componentName: ayazos
+welcomeStyleCalamares: false
+welcomeExpandingLogo: true
+windowExpanding: normal
+windowSize: 960px,640px
+windowPlacement: center
+sidebar: qml
+navigation: widget
+
+strings:
+    productName:         AyazOS
+    shortProductName:    AyazOS
+    version:             1.0
+    shortVersion:        1.0
+    versionedName:       AyazOS 1.0
+    shortVersionedName:  AyazOS 1.0
+    bootloaderEntryName: AyazOS
+    productUrl:          https://github.com/yzzahmt/AyazOS
+    supportUrl:          https://github.com/yzzahmt/AyazOS/issues
+
+images:
+    productLogo:         "logo.png"
+    productIcon:         "logo.png"
+    productWelcome:      "welcome.png"
+
+slideshow:               "show.qml"
+slideshowAPI:            2
+
+style:
+   SidebarBackground:        "#0A0E15"
+   SidebarText:              "#E8EDF5"
+   SidebarTextCurrent:       "#0E1626"
+   SidebarBackgroundCurrent: "#A9C1F2"

@@ -1,0 +1,8 @@
+QWidget { font-family: "Inter"; font-size: 10.5pt; }
+#mainApp { background: #0E131C; color: #E8EDF5; }
+QPushButton { background: #1A2130; color: #E8EDF5; border: 1px solid rgba(255,255,255,0.10); border-radius: 10px; padding: 7px 16px; }
+QPushButton:hover { background: #222B3D; }
+QPushButton:default, #view-button-next { background: #A9C1F2; color: #0E1626; border: none; }
+QLineEdit, QComboBox { background: #141A25; color: #E8EDF5; border: 1px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 6px; }
+QProgressBar { background: #141A25; border: none; border-radius: 4px; height: 8px; }
+QProgressBar::chunk { background: #A9C1F2; border-radius: 4px; }

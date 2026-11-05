@@ -1,0 +1,8 @@
+Package: ayazos-branding
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: AyazOS <yazahmet772@hotmail.com>
+Installed-Size: @SIZE@
+Section: misc
+Priority: optional
+Description: AyazOS logo, wallpapers and boot animation

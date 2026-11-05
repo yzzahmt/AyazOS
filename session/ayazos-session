@@ -1,0 +1,29 @@
+#!/bin/sh
+# AyazOS masaüstü oturumu (greetd tarafından başlatılır).
+export XDG_CURRENT_DESKTOP=AyazOS:wlroots
+export XDG_SESSION_DESKTOP=ayazos
+export XDG_SESSION_TYPE=wayland
+export QT_QPA_PLATFORM="wayland;xcb"
+export QT_QPA_PLATFORMTHEME=gtk3
+export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
+export GDK_BACKEND="wayland,x11"
+export MOZ_ENABLE_WAYLAND=1
+export ELECTRON_OZONE_PLATFORM_HINT=auto
+export SDL_VIDEODRIVER="wayland,x11"
+export _JAVA_AWT_WM_NONREPARENTING=1
+export QS_ICON_THEME=Papirus-Dark
+
+CONF="${XDG_CONFIG_HOME:-$HOME/.config}/ayazos/wayfire.ini"
+if [ ! -f "$CONF" ]; then
+    mkdir -p "$(dirname "$CONF")"
+    cp /etc/ayazos/wayfire.ini "$CONF"
+fi
+# GTK uygulamaları koyu temada açılsın.
+gsettings set org.gnome.desktop.interface color-scheme prefer-dark 2>/dev/null
+gsettings set org.gnome.desktop.interface font-name "Inter 11" 2>/dev/null
+gsettings set org.gnome.desktop.interface icon-theme Papirus-Dark 2>/dev/null
+
+if command -v dbus-run-session >/dev/null && [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
+    exec dbus-run-session wayfire -c "$CONF"
+fi
+exec wayfire -c "$CONF"

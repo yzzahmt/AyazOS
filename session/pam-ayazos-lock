@@ -1,0 +1,3 @@
+# AyazOS kilit ekranı
+auth    include  login
+account include  login
