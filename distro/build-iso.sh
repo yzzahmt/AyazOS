@@ -81,9 +81,9 @@ G
 # Kurulum aracı ve ayarları
 rm -rf $C/etc/calamares; cp -r "$ROOT/distro/calamares" $C/etc/calamares
 install -Dm644 "$ROOT/distro/calamares/install-ayazos.desktop" $C/usr/share/applications/install-ayazos.desktop
-L=$(ls "$ROOT"/branding/logo/png/*256*.png 2>/dev/null | grep -v tile | head -1)
+L=$(ls "$ROOT"/branding/logo/png/*256*.png 2>/dev/null | grep -v tile | head -1 || true)
 [ -n "$L" ] && cp "$L" $C/etc/calamares/branding/ayazos/logo.png
-W=$(ls "$ROOT"/branding/logo/*wordmark*.png "$ROOT"/branding/logo/png/*wordmark*.png 2>/dev/null | head -1)
+W=$(ls "$ROOT"/branding/logo/*wordmark*.png "$ROOT"/branding/logo/png/*wordmark*.png 2>/dev/null | head -1 || true)
 [ -n "$W" ] && cp "$W" $C/etc/calamares/branding/ayazos/welcome.png || cp $C/etc/calamares/branding/ayazos/logo.png $C/etc/calamares/branding/ayazos/welcome.png 2>/dev/null || true
 # Canlı oturumda kurulum aracı dock'ta görünsün diye masaüstüne kısayol
 mkdir -p $C/etc/skel/Masaüstü && cp "$ROOT/distro/calamares/install-ayazos.desktop" $C/etc/skel/Masaüstü/ 2>/dev/null || true
@@ -110,7 +110,7 @@ in_chroot "apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*; : > /et
 log "imaj"
 umounts; trap - EXIT
 rm -rf $I; mkdir -p $I/casper $I/boot/grub $I/.disk
-K=$(ls $C/boot/vmlinuz-* | sort -V | tail -1); R=$(ls $C/boot/initrd.img-* | sort -V | tail -1)
+K=$(ls $C/boot/vmlinuz-* | sort -V | tail -1 || true); R=$(ls $C/boot/initrd.img-* | sort -V | tail -1 || true)
 cp "$K" $I/casper/vmlinuz; cp "$R" $I/casper/initrd
 chroot $C dpkg-query -W --showformat='${Package} ${Version}\n' > $I/casper/filesystem.manifest
 du -sx --block-size=1 $C | cut -f1 > $I/casper/filesystem.size
