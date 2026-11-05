@@ -208,8 +208,8 @@ def bg_stars(n, seed, mag_pow=2.6, bright=1.0, tint=True, sizemul=1.0, amp_mul=1
     sig = (0.7 + 1.6 * m) * U * 1.15 * sizemul
     core = splat((H, W), x, y, amps, sig)
     glow_sel = m > 0.55
-    glow = splat((H, W), x[glow_sel], y[glow_sel], amps[glow_sel] * 0.22, sig[glow_sel] * 3.2 + 1)
+    glow = splat((H, W), x[glow_sel], y[glow_sel], amps[glow_sel] * 0.10, sig[glow_sel] * 2.4 + 1)
     out = core + glow
-    big = m > 0.93
+    big = m > 0.985
     out = spikes(out, x[big], y[big], amps[big] * 0.5, (8 + 90 * m[big]) * U)
     return out

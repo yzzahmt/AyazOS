@@ -89,8 +89,8 @@ def render_galaxy(cam, gal, rot, neb=None, star_gain=1.0, mult_size=1.0, core=Tr
         x, y, d = prj(P)
         px = 240.0 * (340.0 / d) * 2.0 * U * mult_size           # diameter px
         # soft blob = (1-smoothstep(d))^2.4 -> approx gaussian sigma ~ 0.30 R
-        sig = px / 2 * 0.36
-        amp = Cn * (An * 0.52)[:, None] * 1.7
+        sig = px / 2 * 0.30
+        amp = Cn * (An * 0.52)[:, None] * 0.20
         out += splat((H, W), x, y, amp, sig)
     # stars
     x, y, d = prj(gal["pos"])
@@ -114,7 +114,7 @@ def render_galaxy(cam, gal, rot, neb=None, star_gain=1.0, mult_size=1.0, core=Tr
             yy, xx = np.mgrid[:n, :n].astype(np.float32); rr = np.hypot(xx - n // 2, yy - n // 2) / (n // 2)
             prof = np.zeros((n, n, 3), np.float32)
             pos = [s[0] for s in stops]
-            al = np.interp(rr, pos, [s[3] for s in stops])
+            al = np.interp(rr, pos, [s[1][3] for s in stops])
             for c in range(3): prof[..., c] = np.interp(rr, pos, [s[1][c] for s in stops]) * al * op * core_gain
             prof[rr > 1] = 0
             x0 = int(round(float(cx[0]))) - n // 2; y0 = int(round(float(cy[0]))) - n // 2

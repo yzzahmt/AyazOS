@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Dosyalar
+Name[en]=Files
+Comment=Dosya ve klasörlerine göz at
+Exec=ayaz-files %U
+Icon=system-file-manager
+Terminal=false
+Categories=System;FileManager;Utility;
+MimeType=inode/directory;
+Keywords=dosya;klasör;files;folder;
+StartupWMClass=ayaz-files

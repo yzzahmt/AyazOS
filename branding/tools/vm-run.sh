@@ -8,4 +8,4 @@ $R/scripts/vssh 'mkdir -p ~/brand/tools ~/brand/out'
 scp $SSHO -q -r $R/branding/tools/* ayaz@127.0.0.1:brand/tools/ || exit 1
 S=$1; shift
 case $S in *.py) CMD="python3";; *) CMD="bash";; esac
-$R/scripts/vssh "cd ~/brand/tools && $CMD $S $*" || exit 1
+$R/scripts/vssh "cd ~/brand/tools && SCALE=${SCALE:-1.0} $CMD $S $*" || exit 1

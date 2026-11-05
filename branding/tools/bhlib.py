@@ -23,7 +23,7 @@ def trace(bx, by, elev_deg=7.0, r_in=3.0, r_out=11.0, max_psi=4.2 * math.pi, dps
     idx = np.arange(n)
     r_prev = 1e9 * np.ones(n); z_prev = zf(r_prev, psi) * 0 + (np.cos(0) * so)  # sign only
     z_prev = np.full(n, so)
-    sky = np.full(n, math.pi)           # psi_end for escaped rays
+    sky = np.full(n, max_psi)           # unresolved = ring
     horizon = np.zeros(n, bool)
     # active compaction
     act = idx.copy()

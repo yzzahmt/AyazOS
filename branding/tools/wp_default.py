@@ -5,16 +5,16 @@ import galaxylib
 
 rng = np.random.default_rng(2024)
 SC = 85
-gal = build_galaxy(SC, rng, density=2.2)
-neb = build_nebula(SC, rng, n=260)
+gal = build_galaxy(SC, rng, density=3.5)
+neb = build_nebula(SC, rng, n=300)
 # camera: galaxy sits right of centre so the top-left stays calm
 cam = Cam(W * 0.60, H * 0.54, zoom=1.12)
-lay = render_galaxy(cam, gal, (0.60, -0.16, 0.55), neb, star_gain=1.0, mult_size=1.0, rng=rng)
+lay = render_galaxy(cam, gal, (0.60, -0.16, 0.55), neb, star_gain=0.5, mult_size=1.0, core_gain=0.55, rng=rng)
 
-bg = bg_stars(5200, 77, mag_pow=3.0, bright=0.95, sizemul=0.85)
+bg = bg_stars(3600, 77, mag_pow=3.4, bright=0.8, sizemul=0.8)
 # extra far stars like the site's background sphere
 lin = lay + bg
-lin = bloom(lin, 0.55, thresh=0.05)
+lin = bloom(lin, 0.35, thresh=0.04)
 
 # deep violet-space base + faint vertical wash
 X, Y = grid()
