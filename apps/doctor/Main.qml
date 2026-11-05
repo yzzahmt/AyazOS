@@ -297,7 +297,9 @@ Window {
                         anchors { left: parent.left; top: parent.top; topMargin: 34 }
                         text: "Denetimler"; color: Theme.text; font { family: Theme.font; pixelSize: 24 }
                     }
-                    Toast { anchors { right: parent.right; rightMargin: 32; verticalCenter: lt.verticalCenter }; visible: win.notice !== "" && win.page === "health" }
+                    Toast { anchors.right: parent.right
+ anchors.rightMargin: 32
+ anchors.verticalCenter: lt.verticalCenter; visible: win.notice !== "" && win.page === "health" }
                     ListView {
                         anchors { left: parent.left; right: parent.right; top: lt.bottom; bottom: parent.bottom; topMargin: 18; rightMargin: 32 }
                         clip: true; spacing: 8; bottomMargin: 30
@@ -344,7 +346,8 @@ Window {
                                             RotationAnimation on rotation { from: 0; to: 360; duration: 900; loops: Animation.Infinite; running: win.fixing === cardR.modelData.id }
                                             Icon { name: "refresh-cw"; size: 18; color: Theme.accent }
                                         }
-                                        Text { text: "Onarılıyor"; color: Theme.accent; font { family: Theme.font; pixelSize: 12 }; anchors.verticalCenter: parent.verticalCenter }
+                                        Text { text: "Onarılıyor"; color: Theme.accent; font { family: Theme.font; pixelSize: 12 }
+ anchors.verticalCenter: parent.verticalCenter }
                                     }
                                 }
                             }
@@ -422,7 +425,9 @@ Window {
                     Text { text: "Gelişmiş"; color: Theme.text; font { family: Theme.font; pixelSize: 28 } }
                     Text { text: "Tek tıkla yaygın onarımlar"; color: Theme.textDim; font { family: Theme.font; pixelSize: 13 } }
                 }
-                Toast { anchors { right: parent.right; rightMargin: 32; verticalCenter: ah.verticalCenter }; visible: win.notice !== "" && win.page === "advanced" }
+                Toast { anchors.right: parent.right
+ anchors.rightMargin: 32
+ anchors.verticalCenter: ah.verticalCenter; visible: win.notice !== "" && win.page === "advanced" }
                 GridLayout {
                     anchors { left: parent.left; right: parent.right; top: ah.bottom; topMargin: 26; leftMargin: 34; rightMargin: 32 }
                     columns: 2; rowSpacing: 16; columnSpacing: 16

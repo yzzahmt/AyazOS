@@ -157,7 +157,20 @@ Window {
     Component.onCompleted: {
         watcher.startWith([helper, "watch"]);
         reload(true);
-        if (appArgs.length > 0 && Fs.exists(appArgs[0])) playFile(appArgs[0]);
+        for (const a of appArgs) {
+            if (a === "--albums" || a === "--artists" || a === "--playlists") nav(a.slice(2));
+            else if (a === "--full") full = true;
+            else if (a === "--album" || a === "--artist" || a === "--playlist") startDetail = a.slice(2);
+            else if (Fs.exists(a)) playFile(a);
+        }
+    }
+    property string startDetail: ""
+    onLoadedChanged: {
+        if (!loaded || !startDetail) return;
+        if (startDetail === "album" && albums.length) openAlbum(albums[0]);
+        else if (startDetail === "artist" && artists.length) openArtist(artists[0]);
+        else if (startDetail === "playlist" && playlists.length) openPlaylist(0);
+        startDetail = "";
     }
     function playFile(p) { run([helper, "play", JSON.stringify([p]), "0"]); }
 
@@ -568,7 +581,7 @@ Window {
                 }
                 Item { Layout.fillWidth: true }
                 Rectangle {
-                    Layout.preferredWidth: 260; Layout.preferredHeight: 40
+                    Layout.preferredWidth: 280; Layout.preferredHeight: 40
                     radius: 12
                     color: Qt.rgba(1, 1, 1, 0.04)
                     border.width: 1
@@ -590,7 +603,7 @@ Window {
                             Keys.onEscapePressed: { text = ""; win.query = ""; focus = false; }
                             Text {
                                 visible: !search.text
-                                text: "Şarkı, sanatçı veya albüm ara"
+                                text: "Şarkı, sanatçı, albüm ara"
                                 color: Theme.textFaint
                                 font: search.font
                                 anchors.verticalCenter: parent.verticalCenter
