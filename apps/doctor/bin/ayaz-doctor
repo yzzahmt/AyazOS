@@ -145,7 +145,7 @@ FIX = {
 }
 ACTIONS = {
     "clean-cache": ("root", "apt-get clean; journalctl --vacuum-size=200M; true"),
-    "empty-trash": ("user", "rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/* 2>/dev/null; true"),
+    "empty-trash": ("user", "gio trash --empty 2>/dev/null; true"),
     "reset-network": FIX["net"], "reset-sound": FIX["sound"],
     "restart-shell": ("user", "pkill -x qs"),
 }
@@ -154,7 +154,7 @@ def do_fix(table, key):
     if key not in table: out({"type": "done", "ok": False}); return
     who, cmd = table[key]
     if key == "disk":
-        subprocess.run(["sh", "-c", "rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/* ~/.cache/thumbnails/* 2>/dev/null"])
+        subprocess.run(["sh", "-c", "gio trash --empty 2>/dev/null; rm -rf ~/.cache/thumbnails/normal ~/.cache/thumbnails/large 2>/dev/null"])
     full = root(cmd) if who == "root" else cmd
     p = subprocess.Popen(["sh", "-c", full], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     for ln in p.stdout:
