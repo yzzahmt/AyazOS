@@ -47,9 +47,15 @@ def parse_search(text):
             res.append(d)
     return res
 
+INST = None
 def apt_installed(pkg):
-    s = run(["dpkg-query", "-W", "-f=${Status}", pkg])
-    return s.endswith("installed") and "not-installed" not in s and "deinstall" not in s
+    global INST
+    if INST is None:
+        INST = set()
+        for ln in run(["dpkg-query", "-W", "-f=${Package} ${db:Status-Abbrev}\n"]).splitlines():
+            p = ln.split()
+            if len(p) >= 2 and p[1].startswith("ii"): INST.add(p[0])
+    return pkg in INST
 
 def fp_installed(fid):
     if not HAS_FLATPAK or not fid: return False
@@ -151,7 +157,7 @@ def cmd_details(aid, pkg="", fid=""):
             if m and m.group(1) == "Developer": d["developer"] = m.group(2)
             if ln.startswith("Homepage:"): d["homepage"] = ln.split(":", 1)[1].strip()
             if ln.strip().startswith("- ") and "http" in ln and ("png" in ln or "jpg" in ln): d["screenshots"].append(ln.strip()[2:])
-        d["description"] = re.sub(r"\s+", " ", " ".join(desc)).strip()
+        d["description"] = re.sub(r"\s+", " ", re.sub(r"\.\s+\.", ".", " ".join(desc))).strip()
         info = run(["apt-cache", "show", pkg])
         if info:
             d["apt_available"] = True

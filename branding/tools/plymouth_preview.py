@@ -21,7 +21,7 @@ st = [stage(i) for i in range(48)]
 st[0].save(os.path.join(D, "preview.gif"), save_all=True, append_images=st[1:], duration=33, loop=0, optimize=True)
 sheet = Image.new("RGB", (6 * 200, 2 * 200))
 for k, i in enumerate(range(0, 48, 4)):
-    sheet.paste(frames[i].convert("RGB").resize((200, 200), Image.LANCZOS), ((k % 6) * 200, (k // 6) * 200))
+    sheet.paste(Image.alpha_composite(Image.new("RGBA", (400, 400), (0, 0, 0, 255)), frames[i]).convert("RGB").resize((200, 200), Image.LANCZOS), ((k % 6) * 200, (k // 6) * 200))
 sheet.save(os.path.join(D, "preview-frames.png"))
 # loop seam check: difference between last frame and first
 a = np.asarray(frames[47].convert("RGB"), np.float32); b = np.asarray(frames[0].convert("RGB"), np.float32); c = np.asarray(frames[1].convert("RGB"), np.float32)

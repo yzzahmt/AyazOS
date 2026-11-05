@@ -38,7 +38,7 @@ def connect(timeout=0.0):
 def spawn_mpv():
     args = ["mpv", "--idle=yes", "--no-video", "--no-terminal", "--force-window=no",
             "--audio-display=no", "--volume=80", "--vo=null", "--input-ipc-server=" + SOCK,
-            "--replaygain=track", "--audio-client-name=Müzik"]
+            "--replaygain=track"]
     if os.environ.get("AYAZ_MUSIC_AO"):
         args.append("--ao=" + os.environ["AYAZ_MUSIC_AO"])
     if not os.path.exists("/etc/mpv/scripts/mpris.so"):

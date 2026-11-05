@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Müzik
+Name[en]=Music
+Comment=Müzik kitaplığın ve çalar
+Exec=ayaz-music %U
+Icon=multimedia-audio-player
+Terminal=false
+Categories=AudioVideo;Audio;Player;Music;
+MimeType=audio/mpeg;audio/flac;audio/ogg;audio/x-wav;audio/mp4;audio/x-opus+ogg;audio/aac;
+Keywords=müzik;şarkı;müzik çalar;music;audio;
+StartupWMClass=ayaz-music

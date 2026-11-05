@@ -28,7 +28,7 @@ Page {
         if (!Fs.exists(logo)) logo = Fs.home + "/AyazOS/branding/logo/ayazos-mark.svg";
     }
     readonly property var st: Fs.storage("/")
-    function na(v) { return v ? v : "Kullanılamıyor"; }
+    function na(v) { return v && v !== "-" ? v : "Kullanılamıyor"; }
 
     Card {
         Item {
@@ -76,7 +76,7 @@ Page {
                 }
             }
         }
-        SRow { label: "İşlemci"; icon: "cpu"; Text { text: pg.na(pg.info.cpu) + (pg.info.cores ? " · " + pg.info.cores + " çekirdek" : ""); color: Theme.textDim; font { family: Theme.font; pixelSize: 13 } } }
+        SRow { label: "İşlemci"; icon: "cpu"; Text { text: (pg.info.cpu && pg.info.cpu !== "-" ? pg.info.cpu + " · " : "") + (pg.info.cores ? pg.info.cores + " çekirdek" : "Kullanılamıyor"); color: Theme.textDim; font { family: Theme.font; pixelSize: 13 } } }
         SRow { label: "Ekran kartı"; icon: "layers"; Text { text: pg.na(pg.info.gpu); color: Theme.textDim; font { family: Theme.font; pixelSize: 13 } } }
         SRow { label: "Bellek"; icon: "activity"; Text { text: pg.info.ram ? (parseInt(pg.info.ram) / 1048576).toFixed(1).replace(".", ",") + " GB" : "Kullanılamıyor"; color: Theme.textDim; font { family: Theme.font; pixelSize: 13 } } }
         SRow { label: "Depolama"; icon: "hard-drive"; Text { text: Fs.formatSize(pg.st.free) + " boş / " + Fs.formatSize(pg.st.total); color: Theme.textDim; font { family: Theme.font; pixelSize: 13 } } }

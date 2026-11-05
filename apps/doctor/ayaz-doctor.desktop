@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Sistem Doktoru
+Name[en]=System Doctor
+Comment=Sorunları tek tıkla bul ve düzelt
+Exec=ayaz-doctor
+Icon=utilities-system-monitor
+Terminal=false
+Categories=System;Monitor;
+Keywords=doktor;sorun;onar;sağlık;ses;ağ;disk;doctor;health;
+StartupWMClass=ayaz-doctor

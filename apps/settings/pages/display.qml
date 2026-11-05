@@ -55,7 +55,7 @@ Page {
                 const out = [];
                 modelData.modes.filter(m => m.width === selW && m.height === selH)
                     .sort((a, b) => b.refresh - a.refresh)
-                    .forEach(m => out.push({ label: m.refresh.toFixed(2).replace(/\.?0+$/, "") + " Hz", value: m.refresh }));
+                    .forEach(m => out.push({ label: m.refresh > 0 ? m.refresh.toFixed(2).replace(/\.?0+$/, "") + " Hz" : "Otomatik", value: m.refresh }));
                 return out;
             }
             readonly property bool dirty: selW !== modelData.curW || selH !== modelData.curH || Math.abs(selR - modelData.curR) > 0.001 || selScale !== modelData.scale

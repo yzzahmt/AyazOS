@@ -8,7 +8,7 @@ N = 48; SZ = 400; SS = 3
 S = SZ * SS
 rs = S * 0.5 * 0.94 / 8.6
 geo = bh_geometry(S, S, rs, S / 2, S / 2, roll=math.radians(-14), elev=13.0, r_in=3.0, r_out=8.6)
-STEP = 0.032                                        # pattern phase per frame
+STEP = 0.06                                         # pattern phase per frame
 
 def lens_dim():
     yy, xx = np.mgrid[:SZ, :SZ].astype(np.float32)

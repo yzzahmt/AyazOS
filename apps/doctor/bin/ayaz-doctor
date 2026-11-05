@@ -1,0 +1,195 @@
+#!/usr/bin/python3
+# AyazOS Sistem Doktoru arka ucu. Çıktı: satır başına bir JSON nesnesi.
+#   scan            -> tüm denetimler: {"type":"check","id","title","status":"ok|warn|fail","detail","fix"}
+#   check <id>      -> tek denetim
+#   fix <id>        -> düzeltme (gerekirse pkexec); {"type":"done","ok":bool}
+#   stats           -> anlık sistem durumu (tek satır)
+#   action <ad>     -> gelişmiş eylemler (clean-cache, reset-network, reset-sound, restart-shell)
+import sys, os, re, json, shutil, subprocess, time, glob
+
+def out(o):
+    sys.stdout.write(json.dumps(o, ensure_ascii=False) + "\n"); sys.stdout.flush()
+
+def run(cmd, timeout=25, shell=False):
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, shell=shell)
+        return r.returncode, (r.stdout or "") + (r.stderr or "")
+    except Exception as e:
+        return 1, str(e)
+
+def have(x): return shutil.which(x) is not None
+def human(n):
+    for u in ("B", "KB", "MB", "GB", "TB"):
+        if n < 1024 or u == "TB": return ("%.0f %s" if u in ("B", "KB") else "%.1f %s") % (n, u)
+        n /= 1024
+
+def chk(id, title, status, detail, fix=""):
+    return {"type": "check", "id": id, "title": title, "status": status, "detail": detail, "fix": fix}
+
+def c_dpkg():
+    rc, o = run(["dpkg", "--audit"])
+    if o.strip(): return chk("dpkg", "Paket sistemi", "fail", "Yarım kalmış veya bozuk paketler var.", "Onar")
+    return chk("dpkg", "Paket sistemi", "ok", "Paketlerin hepsi sağlam.")
+
+def c_disk():
+    u = shutil.disk_usage("/")
+    free = u.free / u.total * 100
+    d = "%s boş (%%%d)" % (human(u.free), round(free))
+    if free < 5: return chk("disk", "Disk alanı", "fail", d + ". Disk neredeyse dolu.", "Yer aç")
+    if free < 10: return chk("disk", "Disk alanı", "warn", d + ". Yer azalıyor.", "Yer aç")
+    return chk("disk", "Disk alanı", "ok", d)
+
+def c_drivers():
+    if not have("ubuntu-drivers"): return chk("drivers", "Sürücüler", "ok", "Ek sürücü denetimi bu sistemde yok.")
+    rc, o = run(["ubuntu-drivers", "list"], 40)
+    pk = [l.strip() for l in o.splitlines() if l.strip() and not l.startswith(("ERROR", "WARNING"))]
+    if pk: return chk("drivers", "Sürücüler", "warn", "Önerilen sürücü var: " + pk[0].split(",")[0], "Yükle")
+    return chk("drivers", "Sürücüler", "ok", "Donanımın için eksik sürücü yok.")
+
+def c_net():
+    rc, o = run(["ping", "-c", "1", "-W", "3", "1.1.1.1"], 8)
+    if rc != 0:
+        return chk("net", "İnternet", "fail", "İnternete ulaşılamıyor. Kablo veya Wi-Fi bağlantını kontrol et.", "Ağı yenile")
+    rc, o = run(["getent", "hosts", "ubuntu.com"], 8)
+    if rc != 0: return chk("net", "İnternet", "warn", "Bağlantı var ama site adları çözülemiyor (DNS).", "Ağı yenile")
+    return chk("net", "İnternet", "ok", "Bağlantı sağlıklı.")
+
+def c_sound():
+    if not have("systemctl"): return chk("sound", "Ses", "ok", "-")
+    bad = []
+    for s in ("pipewire", "wireplumber"):
+        rc, o = run(["systemctl", "--user", "is-active", s], 6)
+        if o.strip() != "active": bad.append(s)
+    if bad: return chk("sound", "Ses", "fail", "Ses servisi çalışmıyor.", "Sesi onar")
+    return chk("sound", "Ses", "ok", "Ses servisleri çalışıyor.")
+
+def c_updates():
+    u = shutil.which("ayaz-update") or os.path.expanduser("~/AyazOS/repo/ayaz-update")
+    rc, o = run([u, "check"], 40)
+    try: n = int(o.strip().splitlines()[-1])
+    except Exception: return chk("updates", "Güncellemeler", "ok", "Denetlenemedi.")
+    if n > 0: return chk("updates", "Güncellemeler", "warn" if n < 40 else "fail", "%d güncelleme bekliyor." % n, "Güncelle")
+    return chk("updates", "Güncellemeler", "ok", "Sistem güncel.")
+
+def c_failed():
+    rc, o = run(["systemctl", "--failed", "--no-legend", "--plain"], 10)
+    names = [l.split()[0] for l in o.splitlines() if l.strip()]
+    if names: return chk("failed", "Sistem servisleri", "warn", "%d servis başlayamadı: %s" % (len(names), ", ".join(names[:3])), "Yeniden dene")
+    return chk("failed", "Sistem servisleri", "ok", "Hepsi çalışıyor.")
+
+def c_memory():
+    m = {}
+    for l in open("/proc/meminfo"):
+        k, v = l.split(":"); m[k] = int(v.split()[0]) * 1024
+    used = m["MemTotal"] - m["MemAvailable"]; pct = used / m["MemTotal"] * 100
+    zr = "zram açık" if glob.glob("/sys/block/zram*") else "zram kapalı"
+    d = "%s / %s kullanımda (%%%d), %s" % (human(used), human(m["MemTotal"]), round(pct), zr)
+    if pct > 92: return chk("memory", "Bellek", "fail", d, "")
+    if pct > 80: return chk("memory", "Bellek", "warn", d, "")
+    return chk("memory", "Bellek", "ok", d)
+
+def temp():
+    best = None
+    for f in glob.glob("/sys/class/thermal/thermal_zone*/temp"):
+        try:
+            t = int(open(f).read()) / 1000
+            if 0 < t < 150: best = max(best or 0, t)
+        except Exception: pass
+    return best
+
+def c_temp():
+    t = temp()
+    if t is None: return chk("temp", "Sıcaklık", "ok", "Sıcaklık sensörü bulunamadı.")
+    if t >= 90: return chk("temp", "Sıcaklık", "fail", "İşlemci %d°C. Çok sıcak!" % t)
+    if t >= 80: return chk("temp", "Sıcaklık", "warn", "İşlemci %d°C. Biraz sıcak." % t)
+    return chk("temp", "Sıcaklık", "ok", "İşlemci %d°C." % t)
+
+def c_power():
+    rc, o = run(["powerprofilesctl", "get"], 5) if have("powerprofilesctl") else (1, "")
+    names = {"performance": "Performans", "balanced": "Dengeli", "power-saver": "Güç tasarrufu"}
+    if rc != 0: return chk("power", "Güç profili", "ok", "Güç profili yönetimi yok.")
+    p = o.strip()
+    if p == "power-saver": return chk("power", "Güç profili", "warn", "Güç tasarrufu açık; sistem yavaş çalışabilir.", "Dengeli yap")
+    return chk("power", "Güç profili", "ok", names.get(p, p))
+
+def c_boot():
+    rc, o = run(["systemd-analyze"], 15)
+    m = re.search(r"=\s*([\dmin. ]+s)\s*$", o.strip().splitlines()[0] if o.strip() else "")
+    secs = 0
+    for v, u in re.findall(r"([\d.]+)(min|ms|s)\b", o.splitlines()[0] if o.strip() else ""):
+        pass
+    mm = re.search(r"=\s*(?:(\d+)min\s*)?([\d.]+)s", o)
+    if not mm: return chk("boot", "Açılış süresi", "ok", "Ölçülemedi.")
+    secs = int(mm.group(1) or 0) * 60 + float(mm.group(2))
+    d = "Açılış %d saniye sürdü." % round(secs)
+    if secs > 90: return chk("boot", "Açılış süresi", "warn", d)
+    return chk("boot", "Açılış süresi", "ok", d)
+
+CHECKS = [("dpkg", c_dpkg), ("disk", c_disk), ("drivers", c_drivers), ("net", c_net), ("sound", c_sound),
+          ("updates", c_updates), ("failed", c_failed), ("memory", c_memory), ("temp", c_temp),
+          ("power", c_power), ("boot", c_boot)]
+
+def root(cmd):
+    return cmd if os.geteuid() == 0 else "pkexec sh -c " + shlex_quote(cmd)
+def shlex_quote(s): return "'" + s.replace("'", "'\\''") + "'"
+
+FIX = {
+    "dpkg": ("root", "dpkg --configure -a && DEBIAN_FRONTEND=noninteractive apt-get -f install -y"),
+    "disk": ("root", "apt-get clean; journalctl --vacuum-size=200M; (flatpak uninstall --unused -y --noninteractive 2>/dev/null || true); true"),
+    "drivers": ("root", "ubuntu-drivers install"),
+    "net": ("root", "systemctl restart NetworkManager; sleep 3"),
+    "sound": ("user", "systemctl --user restart pipewire pipewire-pulse wireplumber"),
+    "updates": ("user", "U=$(command -v ayaz-update || echo ~/AyazOS/repo/ayaz-update); exec \"$U\" apply"),
+    "failed": ("root", "systemctl reset-failed; systemctl --failed --no-legend --plain | awk '{print $1}' | xargs -r systemctl restart; true"),
+    "power": ("user", "powerprofilesctl set balanced"),
+}
+ACTIONS = {
+    "clean-cache": ("root", "apt-get clean; journalctl --vacuum-size=200M; true"),
+    "empty-trash": ("user", "rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/* 2>/dev/null; true"),
+    "reset-network": FIX["net"], "reset-sound": FIX["sound"],
+    "restart-shell": ("user", "pkill -x qs"),
+}
+
+def do_fix(table, key):
+    if key not in table: out({"type": "done", "ok": False}); return
+    who, cmd = table[key]
+    if key == "disk":
+        subprocess.run(["sh", "-c", "rm -rf ~/.local/share/Trash/files/* ~/.local/share/Trash/info/* ~/.cache/thumbnails/* 2>/dev/null"])
+    full = root(cmd) if who == "root" else cmd
+    p = subprocess.Popen(["sh", "-c", full], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    for ln in p.stdout:
+        if ln.strip(): out({"type": "log", "text": ln.strip()})
+    p.wait()
+    out({"type": "done", "ok": p.returncode == 0})
+
+_prev = None
+def stats():
+    global _prev
+    def cpu():
+        v = [int(x) for x in open("/proc/stat").readline().split()[1:]]
+        return sum(v), v[3] + v[4]
+    t1, i1 = cpu(); time.sleep(0.4); t2, i2 = cpu()
+    c = 100 * (1 - (i2 - i1) / max(1, t2 - t1))
+    m = {}
+    for l in open("/proc/meminfo"):
+        k, v = l.split(":"); m[k] = int(v.split()[0]) * 1024
+    u = shutil.disk_usage("/")
+    out({"type": "stats", "cpu": round(c, 1), "ram_used": m["MemTotal"] - m["MemAvailable"], "ram_total": m["MemTotal"],
+         "disk_used": u.used, "disk_total": u.total, "temp": temp(), "load": os.getloadavg()[0]})
+
+def main():
+    a = sys.argv[1:]
+    if not a: print(__doc__); return 2
+    if a[0] == "scan":
+        for id, f in CHECKS:
+            try: out(f())
+            except Exception as e: out(chk(id, id, "ok", "Denetlenemedi: %s" % e))
+        out({"type": "done"})
+    elif a[0] == "check":
+        for id, f in CHECKS:
+            if id == a[1]: out(f())
+        out({"type": "done"})
+    elif a[0] == "fix": do_fix(FIX, a[1])
+    elif a[0] == "action": do_fix(ACTIONS, a[1])
+    elif a[0] == "stats": stats()
+main()

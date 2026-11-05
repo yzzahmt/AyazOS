@@ -21,7 +21,7 @@ QtObject {
     readonly property color accent: cfg.accent ? cfg.accent : Theme.accent
     readonly property color accentInk: Theme.accentInk
 
-    Component { id: procComp; Proc {} }
+    property Component procComp: Component { Proc {} }
 
     // Komutu sh üzerinden çalıştırır; araç yoksa kod 127 döner (hiç çökmez).
     function run(args, cb) {

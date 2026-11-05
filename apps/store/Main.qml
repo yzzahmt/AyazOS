@@ -96,7 +96,7 @@ Window {
         wantInstall = !!autoInstall;
     }
     property bool wantInstall: false
-    function installed(d) { return d.apt_installed || d.flatpak_installed; }
+    function installed(d) { return !!(d.apt_installed || d.flatpak_installed); }
     function aptOk() { return det.apt_available; }
     function fpOk() { return det.flatpak_available; }
     function doInstall() {
@@ -144,14 +144,19 @@ Window {
         onFinished: (code, out) => {
             const r = win.parseLines(out);
             if (r.length) win.iconMap = r[0].map;
+            if (appArgs.length > 0) {
+                const a = appArgs[0].split(":");
+                if (a[0] === "detail") win.openApp(win.fromCatalog(a[1]), false);
+                else win.go(a[0], a[1]);
+            }
         }
     }
     Proc { id: metaProc; onFinished: (code, out) => { const r = win.parseLines(out); if (r.length) win.flatpakOn = r[0].flatpak; } }
     Proc {
         id: listProc
+        onLine: text => { try { const o = JSON.parse(text); if (o.type === "app") { win.results = win.results.concat([win.fromBackend(o)]); win.loading = false; } } catch (e) {} }
         onFinished: (code, out) => {
             if (code !== 0 && code !== 1) return;
-            win.results = win.parseLines(out).filter(o => o.type === "app").map(win.fromBackend);
             win.loading = false;
         }
     }
@@ -353,7 +358,7 @@ Window {
                                 radius: 22
                                 opacity: win.heroIdx === index ? 1 : 0
                                 visible: opacity > 0.01
-                                Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.InOutQuad } }
+                                Behavior on opacity { NumberAnimation { duration: 350; easing.type: Easing.InOutQuad } }
                                 gradient: Gradient {
                                     orientation: Gradient.Horizontal
                                     GradientStop { position: 0; color: hero.app.c1 }
