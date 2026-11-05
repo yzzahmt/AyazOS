@@ -10,7 +10,7 @@ case "${1:-check}" in
   apply)
     if [ "$(id -u)" -ne 0 ]; then exec pkexec "$0" apply; fi
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -q
+    apt-get update -q || echo "Bazı paket kaynaklarına ulaşılamadı, mevcut olanlarla devam ediliyor." >&2
     apt-get -y -q -o Dpkg::Options::=--force-confdef -o Dpkg::Options::=--force-confold dist-upgrade
     flatpak update -y --noninteractive 2>/dev/null || true ;;
   *) echo "kullanım: ayaz-update check|list|apply" >&2; exit 2 ;;
