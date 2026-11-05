@@ -130,37 +130,43 @@ ShellRoot {
                         spacing: 22
                         Repeater {
                             model: root.users
-                            Column {
+                            Item {
+                                id: ucell
                                 required property var modelData
                                 readonly property bool sel: root.user === modelData.name
-                                spacing: 10
+                                width: ucol.implicitWidth
+                                height: ucol.implicitHeight
                                 opacity: sel ? 1 : 0.55
                                 scale: sel ? 1 : 0.8
                                 Behavior on scale { NumberAnimation { duration: Theme.dNormal; easing.type: Easing.OutCubic } }
-                                Rectangle {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    width: 84; height: 84; radius: 42
-                                    gradient: Gradient {
-                                        GradientStop { position: 0; color: Theme.accent }
-                                        GradientStop { position: 1; color: Theme.violet }
+                                Column {
+                                    id: ucol
+                                    spacing: 10
+                                    Rectangle {
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        width: 84; height: 84; radius: 42
+                                        gradient: Gradient {
+                                            GradientStop { position: 0; color: Theme.accent }
+                                            GradientStop { position: 1; color: Theme.violet }
+                                        }
+                                        border.width: 2; border.color: Qt.rgba(1, 1, 1, 0.35)
+                                        Text {
+                                            anchors.centerIn: parent
+                                            text: ucell.modelData.full.charAt(0).toUpperCase()
+                                            color: Theme.accentInk
+                                            font { family: Theme.font; pixelSize: 34; weight: Font.DemiBold }
+                                        }
                                     }
-                                    border.width: 2; border.color: Qt.rgba(1, 1, 1, 0.35)
                                     Text {
-                                        anchors.centerIn: parent
-                                        text: modelData.full.charAt(0).toUpperCase()
-                                        color: Theme.accentInk
-                                        font { family: Theme.font; pixelSize: 34; weight: Font.DemiBold }
+                                        anchors.horizontalCenter: parent.horizontalCenter
+                                        text: ucell.modelData.full
+                                        color: Theme.text
+                                        font { family: Theme.font; pixelSize: 18; weight: Font.Medium }
                                     }
-                                }
-                                Text {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    text: modelData.full
-                                    color: Theme.text
-                                    font { family: Theme.font; pixelSize: 18; weight: Font.Medium }
                                 }
                                 MouseArea {
                                     anchors.fill: parent
-                                    onClicked: { root.user = modelData.name; input.forceActiveFocus(); }
+                                    onClicked: { root.user = ucell.modelData.name; input.forceActiveFocus(); }
                                 }
                             }
                         }

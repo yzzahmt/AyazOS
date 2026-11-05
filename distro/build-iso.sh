@@ -56,7 +56,8 @@ in_chroot "apt-get update -q >/dev/null && apt-get install -y -q \
   >/dev/null"
 [ "${BASE_ONLY:-0}" = 1 ] && { log "temel sistem hazır (BASE_ONLY)"; exit 0; }
 log "AyazOS masaüstü"
-in_chroot "apt-get install -y -q ayazos-desktop >/dev/null"
+in_chroot "echo 'steam steam/question select I AGREE' | debconf-set-selections; echo 'steam steam/license note ' | debconf-set-selections; echo 'steam-installer steam/question select I AGREE' | debconf-set-selections"
+in_chroot "apt-get update -q >/dev/null && apt-get install -y -q ayazos-desktop >/tmp/desktop-install.log 2>&1 || { tail -30 /tmp/desktop-install.log; exit 1; }"
 in_chroot "apt-get purge -y -q snapd >/dev/null 2>&1 || true; apt-mark hold snapd >/dev/null 2>&1 || true"
 
 log "yapılandırma"

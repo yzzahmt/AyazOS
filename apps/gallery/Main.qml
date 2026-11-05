@@ -41,6 +41,7 @@ Window {
     property bool infoOpen: false
     property var exif: ({})
     property int bust: 0
+    property bool reloading: false
     property string toast: ""
     readonly property var curItem: vindex >= 0 && vindex < vlist.length ? vlist[vindex] : null
 
@@ -211,8 +212,10 @@ Window {
         const path = it.path;
         run(["mogrify", "-auto-orient", "-rotate", String(deg), path], (code) => {
             if (code !== 0) { win.say("Döndürülemedi"); return; }
+            const r = Object.assign({}, win.thumbReady); delete r[path]; win.thumbReady = r;
             win.makeThumbs([path], true);
             win.bust++;
+            win.reloading = true; reloadTimer.restart();
             win.say("Döndürüldü");
         });
     }
@@ -241,6 +244,7 @@ Window {
         if (curItem) Proc.detached(["ayaz-files", dirOf(curItem.path)]);
     }
 
+    Timer { id: reloadTimer; interval: 60; onTriggered: { win.reloading = false; win.loadExif(); } }
     Timer { id: toastTimer; interval: 2200; onTriggered: win.toast = "" }
 
     Shortcut { sequence: "Escape"; enabled: win.viewer; onActivated: win.closeViewer() }
@@ -511,8 +515,8 @@ Window {
                         visible: rowItem.modelData.h
                         anchors { left: parent.left; leftMargin: 12; bottom: parent.bottom; bottomMargin: 12 }
                         spacing: 12
-                        Text { text: rowItem.modelData.label; color: Theme.text; font { family: Theme.font; pixelSize: 19; weight: Font.Medium } anchors.verticalCenter: parent.verticalCenter }
-                        Text { text: rowItem.modelData.count; color: Theme.textFaint; font { family: Theme.font; pixelSize: 13 } anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: rowItem.modelData.label || ""; color: Theme.text; font { family: Theme.font; pixelSize: 19; weight: Font.Medium } anchors.verticalCenter: parent.verticalCenter }
+                        Text { text: rowItem.modelData.count || 0; color: Theme.textFaint; font { family: Theme.font; pixelSize: 13 } anchors.verticalCenter: parent.verticalCenter }
                     }
                     Row {
                         visible: !rowItem.modelData.h
@@ -580,7 +584,10 @@ Window {
             visible: win.openP > 0.001
             readonly property real panelW: win.infoOpen ? 330 : 0
 
-            Rectangle { anchors.fill: parent; color: "#07090E"; opacity: win.openP * 0.98 }
+            Rectangle { anchors.fill: parent; color: "#07090E"; opacity: win.openP }
+            Item { id: vMask; anchors.fill: parent; visible: false; layer.enabled: true; Rectangle { anchors.fill: parent; radius: frame.radius; color: "#000" } }
+            layer.enabled: true
+            layer.effect: MultiEffect { maskEnabled: true; maskSource: vMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
             MouseArea { anchors.fill: parent; enabled: win.viewer }   // alttakini engelle
 
             // resim kutusu
@@ -620,7 +627,7 @@ Window {
                         Image {
                             id: thumbImg
                             anchors.fill: parent
-                            source: win.curItem ? "file://" + win.curItem.thumb : ""
+                            source: win.curItem && !win.reloading ? "file://" + win.curItem.thumb : ""
                             fillMode: Image.Stretch
                             autoTransform: true
                             cache: win.bust === 0
@@ -630,7 +637,7 @@ Window {
                         Image {
                             id: pic
                             anchors.fill: parent
-                            source: win.curItem ? "file://" + win.curItem.path : ""
+                            source: win.curItem && !win.reloading ? "file://" + win.curItem.path : ""
                             sourceSize: Qt.size(4096, 4096)
                             fillMode: Image.Stretch
                             autoTransform: true
@@ -672,6 +679,7 @@ Window {
             // üst çubuk
             Rectangle {
                 id: vtop
+                z: 5
                 anchors { left: parent.left; right: parent.right; top: parent.top }
                 height: 76
                 opacity: win.openP
