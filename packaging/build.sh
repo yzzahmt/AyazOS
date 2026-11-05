@@ -30,6 +30,8 @@ ALL=$(echo "$SHLIBS,$DEPS" | sed 's/^,//; s/,$//; s/,/, /g')
 SIZE=$(du -sk "$DEST" | cut -f1)
 sed -e "s/@VERSION@/$VERSION/" -e "s/@ARCH@/$ARCH/" -e "s/@SIZE@/$SIZE/" "$SRC/control" > "$DEST/DEBIAN/control"
 [ -n "$ALL" ] && echo "Depends: $ALL" >> "$DEST/DEBIAN/control"
+REC=$({ grep -v -e '^#' -e '^$' "$SRC/recommends" 2>/dev/null || true; } | tr '\n' ',' | sed 's/,$//; s/,/, /g')
+[ -n "$REC" ] && echo "Recommends: $REC" >> "$DEST/DEBIAN/control"
 for f in postinst prerm postrm preinst conffiles triggers; do
   [ -f "$SRC/$f" ] && install -m755 "$SRC/$f" "$DEST/DEBIAN/$f"
 done
