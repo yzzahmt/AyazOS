@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Widgets
 import "../services"
 import "../components"
 
@@ -72,6 +73,32 @@ PanelWindow {
                     active: ToplevelManager.activeToplevel?.appId === modelData.id
                     Icon { anchors.centerIn: parent; name: modelData.icon; size: 22 }
                     onClicked: if (!dock.activate(modelData.id)) Shell.launch(modelData.id)
+                }
+            }
+
+            // Sabitlenmemiş ama açık uygulamalar (küçültülmüş pencereler buradan geri gelir).
+            Repeater {
+                model: ScriptModel {
+                    values: {
+                        const pinnedIds = Shell.pinned.map(p => p.id.toLowerCase());
+                        const seen = {};
+                        return ToplevelManager.toplevels.values
+                            .map(t => t.appId)
+                            .filter(id => id && !pinnedIds.includes(id.toLowerCase()) && !seen[id] && (seen[id] = true));
+                    }
+                }
+                DockTile {
+                    required property string modelData
+                    readonly property var entry: DesktopEntries.heuristicLookup(modelData)
+                    tooltip: entry?.name ?? modelData
+                    running: true
+                    active: ToplevelManager.activeToplevel?.appId === modelData
+                    IconImage {
+                        anchors.centerIn: parent
+                        implicitSize: 30
+                        source: Quickshell.iconPath(entry?.icon ?? modelData, "application-x-executable")
+                    }
+                    onClicked: dock.activate(modelData)
                 }
             }
 

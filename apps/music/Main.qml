@@ -976,10 +976,13 @@ Window {
             anchors.fill: parent
             visible: opacity > 0.01
             opacity: win.full ? 1 : 0
+            layer.enabled: true
+            layer.effect: MultiEffect { maskEnabled: true; maskSource: fullMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
             Behavior on opacity { NumberAnimation { duration: Theme.dSlow; easing.type: Easing.OutCubic } }
             transform: Translate { y: win.full ? 0 : 40; Behavior on y { NumberAnimation { duration: Theme.dSlow; easing.type: Easing.OutCubic } } }
 
             Rectangle { anchors.fill: parent; color: "#0A0E15" }
+            Item { id: fullMask; anchors.fill: parent; visible: false; layer.enabled: true; Rectangle { anchors.fill: parent; radius: frame.radius; color: "#000" } }
             Image {
                 id: bgSrc
                 anchors.fill: parent
