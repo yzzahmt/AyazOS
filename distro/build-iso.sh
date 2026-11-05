@@ -20,7 +20,7 @@ if [ ! -x $C/usr/bin/apt-get ]; then
 fi
 mounts
 cp /etc/resolv.conf $C/etc/resolv.conf 2>/dev/null || true
-rm -f $C/etc/apt/sources.list.d/ubuntu.sources
+rm -f $C/etc/apt/sources.list.d/ubuntu.sources $C/etc/apt/sources.list
 cat > $C/etc/apt/sources.list.d/ubuntu.sources <<SRC
 Types: deb
 URIs: $M
@@ -35,7 +35,8 @@ Components: main universe restricted multiverse
 Signed-By: /usr/share/keyrings/ubuntu-archive-keyring.gpg
 SRC
 # Derleme sırasında AyazOS paketleri yerel depodan gelir.
-[ -d "$REPO/dists" ] && echo "deb [trusted=yes] file:/srv/repo resolute main" > $C/etc/apt/sources.list.d/ayazos-local.list
+rm -f $C/etc/apt/sources.list.d/ayazos-local.list
+[ -d "$REPO/dists" ] && echo "deb [trusted=yes arch=amd64] file:/srv/repo resolute main" > $C/etc/apt/sources.list.d/ayazos-local.list
 cp "$ROOT/repo/mozilla-keyring.asc" $C/usr/share/keyrings/packages.mozilla.org.asc
 cp "$ROOT/repo/mozilla.sources" $C/etc/apt/sources.list.d/mozilla.sources
 mkdir -p $C/etc/apt/preferences.d; cp "$ROOT/repo/apt-preferences" $C/etc/apt/preferences.d/ayazos

@@ -72,6 +72,15 @@ Singleton {
     readonly property string dateShort: Qt.locale("tr_TR").toString(now, "d MMM ddd")
     readonly property string dateLong: Qt.locale("tr_TR").toString(now, "d MMMM dddd").toLocaleUpperCase(Qt.locale("tr_TR"))
 
+    // --- Güncellemeler (6 saatte bir kontrol) ---
+    property int updates: 0
+    Process {
+        id: updCheck
+        command: ["sh", "-c", "command -v ayaz-update >/dev/null && ayaz-update check || echo 0"]
+        stdout: StdioCollector { onStreamFinished: root.updates = parseInt(text) || 0 }
+    }
+    Timer { interval: 6 * 3600 * 1000; running: true; repeat: true; triggeredOnStart: true; onTriggered: updCheck.running = true }
+
     // --- Oturum ---
     function lock() { Quickshell.execDetached(["qs", "-c", "ayazos", "ipc", "call", "lock", "lock"]); }
     function suspend() { Quickshell.execDetached(["systemctl", "suspend"]); }

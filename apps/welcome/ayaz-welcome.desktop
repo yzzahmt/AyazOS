@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Hoş geldin
+Name[en]=Welcome
+Comment=AyazOS'a hoş geldin: görünümü seç, uygulamaları yükle, kısayolları öğren
+Exec=ayaz-welcome
+Icon=ayazos
+Terminal=false
+NoDisplay=false
+Categories=System;
+Keywords=hoş geldin;welcome;başlangıç;ilk;kurulum;
+StartupWMClass=ayaz-welcome

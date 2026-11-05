@@ -1,0 +1,184 @@
+#!/usr/bin/python3
+"""AyazOS Galeri yardımcısı.
+
+  scan [klasör...]       görselleri tarar, tarihleri çıkarır, önbelleği günceller; JSON yazar
+  thumbs <json> [force]  eksik küçük resimleri üretir (freedesktop); biten yolları satır satır yazar
+  exif <yol>             ayrıntılı üst veri (JSON)
+  wallpaper <yol>        ~/.config/ayazos/shell.json içinde wallpaper anahtarını ayarlar
+"""
+import sys, os, json, hashlib, subprocess, shutil, time
+from urllib.parse import quote
+from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
+
+HOME = os.path.expanduser("~")
+CACHE = os.path.join(os.environ.get("XDG_CACHE_HOME", HOME + "/.cache"), "ayazos")
+CONF = os.path.join(os.environ.get("XDG_CONFIG_HOME", HOME + "/.config"), "ayazos", "shell.json")
+THUMBS = os.path.join(os.environ.get("XDG_CACHE_HOME", HOME + "/.cache"), "thumbnails")
+LIB = os.path.join(CACHE, "gallery.json")
+EXT = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff", ".avif", ".heic", ".svg"}
+MAGICK = shutil.which("magick") or shutil.which("convert")
+
+
+def pic_dirs():
+    dirs = [HOME + d for d in ("/Resimler", "/Görseller", "/Pictures", "/İndirilenler", "/Downloads")]
+    try:
+        for l in open(HOME + "/.config/user-dirs.dirs"):
+            if l.startswith(("XDG_PICTURES_DIR=", "XDG_DOWNLOAD_DIR=")):
+                dirs.append(l.split("=", 1)[1].strip().strip('"').replace("$HOME", HOME))
+    except OSError:
+        pass
+    seen, res = set(), []
+    for d in dirs:
+        r = os.path.realpath(d)
+        if r not in seen and os.path.isdir(r) and r != HOME:
+            seen.add(r)
+            res.append(r)
+    return res
+
+
+def out(o):
+    sys.stdout.write(json.dumps(o, ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+def exif_dates(paths):
+    res = {}
+    if not shutil.which("exiftool") or not paths:
+        return res
+    for i in range(0, len(paths), 200):
+        chunk = paths[i:i + 200]
+        r = subprocess.run(["exiftool", "-q", "-fast2", "-json", "-d", "%s", "-DateTimeOriginal", "-CreateDate"] + chunk,
+                           capture_output=True, text=True)
+        try:
+            for d in json.loads(r.stdout or "[]"):
+                v = d.get("DateTimeOriginal") or d.get("CreateDate")
+                if v:
+                    res[d["SourceFile"]] = int(v)
+        except (ValueError, KeyError):
+            pass
+    return res
+
+
+def scan(dirs):
+    old = {}
+    try:
+        old = {t["path"]: t for t in json.load(open(LIB))}
+    except (OSError, ValueError):
+        pass
+    items, todo = [], []
+    seen = set()
+    for root in dirs or pic_dirs():
+        for dp, dn, fn in os.walk(root):
+            dn[:] = [x for x in dn if not x.startswith(".") and x not in ("node_modules",)]
+            for f in fn:
+                if f.startswith(".") or os.path.splitext(f)[1].lower() not in EXT:
+                    continue
+                p = os.path.join(dp, f)
+                if p in seen:
+                    continue
+                seen.add(p)
+                try:
+                    st = os.stat(p)
+                except OSError:
+                    continue
+                o = old.get(p)
+                if o and o.get("mtime") == int(st.st_mtime) and o.get("size") == st.st_size:
+                    items.append(o)
+                else:
+                    o = {"path": p, "name": f, "size": st.st_size, "mtime": int(st.st_mtime), "date": int(st.st_mtime)}
+                    items.append(o)
+                    todo.append(o)
+    ed = exif_dates([t["path"] for t in todo])
+    for t in todo:
+        if t["path"] in ed:
+            t["date"] = ed[t["path"]]
+    if not dirs:
+        os.makedirs(CACHE, exist_ok=True)
+        json.dump(items, open(LIB, "w"), ensure_ascii=False)
+    items.sort(key=lambda t: -t["date"])
+    res = []
+    for t in items:
+        big = os.path.join(THUMBS, "large", thumb_name(t["path"])[0])
+        res.append(dict(t, thumb=big, has=os.path.exists(big)))
+    out(res)
+
+
+def thumb_name(path):
+    uri = "file://" + quote(path, safe="/")
+    return hashlib.md5(uri.encode()).hexdigest() + ".png", uri
+
+
+def make_thumb(path, force):
+    name, uri = thumb_name(path)
+    try:
+        mt = int(os.stat(path).st_mtime)
+    except OSError:
+        return None
+    big = os.path.join(THUMBS, "large", name)
+    small = os.path.join(THUMBS, "normal", name)
+    if not force and os.path.exists(big) and os.path.exists(small) and int(os.stat(big).st_mtime) >= mt:
+        return path
+    for d in ("large", "normal"):
+        os.makedirs(os.path.join(THUMBS, d), mode=0o700, exist_ok=True)
+    attrs = ["-set", "Thumb::URI", uri, "-set", "Thumb::MTime", str(mt)]
+    src = path + "[0]"
+    r = subprocess.run([MAGICK, src, "-auto-orient", "-thumbnail", "256x256>", "-strip"] + attrs + [big],
+                       capture_output=True)
+    if r.returncode != 0 or not os.path.exists(big):
+        return None
+    subprocess.run([MAGICK, big, "-thumbnail", "128x128>"] + attrs + [small], capture_output=True)
+    return path
+
+
+def thumbs(paths, force):
+    with ThreadPoolExecutor(max_workers=max(2, min(4, os.cpu_count() or 2))) as ex:
+        for p in ex.map(lambda x: make_thumb(x, force), paths):
+            if p:
+                sys.stdout.write(p + "\n")
+                sys.stdout.flush()
+
+
+def exif(path):
+    info = {}
+    if shutil.which("exiftool"):
+        r = subprocess.run(["exiftool", "-json", "-d", "%s", "-Make", "-Model", "-LensModel", "-ISO", "-FNumber",
+                            "-ExposureTime", "-FocalLength", "-ImageWidth", "-ImageHeight", "-DateTimeOriginal", path],
+                           capture_output=True, text=True)
+        try:
+            info = json.loads(r.stdout)[0]
+        except (ValueError, IndexError):
+            pass
+    out(info)
+
+
+def wallpaper(path):
+    os.makedirs(os.path.dirname(CONF), exist_ok=True)
+    try:
+        cfg = json.load(open(CONF))
+        if not isinstance(cfg, dict):
+            cfg = {}
+    except (OSError, ValueError):
+        cfg = {}
+    cfg["wallpaper"] = path
+    tmp = CONF + ".tmp"
+    json.dump(cfg, open(tmp, "w"), ensure_ascii=False, indent=2)
+    os.replace(tmp, CONF)
+
+
+def main():
+    a = sys.argv[1:]
+    if not a:
+        return
+    if a[0] == "scan":
+        scan(a[1:])
+    elif a[0] == "thumbs":
+        thumbs(json.loads(a[1]), len(a) > 2)
+    elif a[0] == "exif":
+        exif(a[1])
+    elif a[0] == "wallpaper":
+        wallpaper(a[1])
+
+
+if __name__ == "__main__":
+    main()

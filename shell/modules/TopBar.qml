@@ -63,6 +63,13 @@ PanelWindow {
         Item { Layout.fillWidth: true }
 
         IconButton {
+            visible: Sys.updates > 0
+            icon: "cloud-download"; size: 30; iconSize: 16
+            label: String(Sys.updates)
+            tint: Theme.accent
+            onClicked: Quickshell.execDetached(["ayaz-settings", "updates"])
+        }
+        IconButton {
             icon: "moon"; label: "Odak"; size: 30; iconSize: 15
             active: Shell.focusMode
             onClicked: Shell.focusMode = !Shell.focusMode

@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Galeri
+Name[en]=Gallery
+Comment=Fotoğraflarına göz at
+Exec=ayaz-gallery %F
+Icon=image-viewer
+Terminal=false
+Categories=Graphics;Viewer;Photography;
+MimeType=image/jpeg;image/png;image/webp;image/gif;image/bmp;image/tiff;image/avif;image/heic;image/svg+xml;
+Keywords=galeri;fotoğraf;resim;görsel;gallery;photo;image;
+StartupWMClass=ayaz-gallery
