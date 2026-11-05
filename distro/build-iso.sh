@@ -94,6 +94,13 @@ GRUB_TIMEOUT_STYLE=hidden
 GRUB_TIMEOUT=0
 GRUB_CMDLINE_LINUX_DEFAULT="quiet splash loglevel=3 vt.global_cursor_default=0"
 G
+# Açılışı yavaşlatan ve masaüstünde gereksiz servisler
+in_chroot "systemctl disable NetworkManager-wait-online.service systemd-networkd-wait-online.service systemd-networkd.service ModemManager.service 2>/dev/null; systemctl enable greetd.service ayazos-drivers.service power-profiles-daemon.service 2>/dev/null; true"
+# Güncellemeler açılışta değil, oturum açıldıktan bir süre sonra
+mkdir -p $C/etc/systemd/system/apt-daily.timer.d
+printf '[Timer]\nOnBootSec=\nOnBootSec=20min\nRandomizedDelaySec=30min\n' > $C/etc/systemd/system/apt-daily.timer.d/ayazos.conf
+mkdir -p $C/etc/systemd/system/apt-daily-upgrade.timer.d
+printf '[Timer]\nOnBootSec=\nOnBootSec=40min\n' > $C/etc/systemd/system/apt-daily-upgrade.timer.d/ayazos.conf
 in_chroot "plymouth-set-default-theme ayazos 2>/dev/null || true; update-initramfs -u -k all >/dev/null 2>&1"
 rm -f $C/usr/sbin/policy-rc.d $C/etc/apt/sources.list.d/ayazos-local.list
 cp "$ROOT/repo/ayazos.sources" $C/etc/apt/sources.list.d/ayazos.sources

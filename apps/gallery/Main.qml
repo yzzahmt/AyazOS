@@ -210,7 +210,7 @@ Window {
         const it = curItem;
         if (!it) return;
         const path = it.path;
-        run(["mogrify", "-auto-orient", "-rotate", String(deg), path], (code) => {
+        run(["sh", "-c", "t=\20 20 12 61 79 80 81 701 33 98 100 204 250 395 398 399 400stat -c %Y \"\\"); mogrify -auto-orient -rotate \"\\" \"\\" && touch -d \"@\\" \"\\"", "sh", path, String(deg)], (code) => {
             if (code !== 0) { win.say("Döndürülemedi"); return; }
             const r = Object.assign({}, win.thumbReady); delete r[path]; win.thumbReady = r;
             win.makeThumbs([path], true);
